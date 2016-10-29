@@ -1,0 +1,8 @@
+dist/
+tmp/
+logs/
+vendor/*/
+!vendor/vendor.json
+
+tidalwave
+tidalwave.json
