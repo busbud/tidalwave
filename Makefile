@@ -9,6 +9,7 @@ build:
 # Creates bash autocomplete file
 bashautocomplete:
 	go run ./tools/bash-autocomplete/bash.go
+	gofmt -s -w ./cmd/autocomplete.go
 
 # Gets govendor if not found and installs all dependencies
 deps:
@@ -49,16 +50,6 @@ dist: bashautocomplete
 	done
 
 	rm -rf tmp
-
-# Creates docker image
-# TODO This should change to building with version argument to support docker hub.
-# Or have two docker files (which sounds silly)
-docker:
-	gox -os="linux" -arch="amd64" -output="tidalwave" -ldflags="-X github.com/dustinblackman/tidalwave/cmd.version=$(VERSION)"
-	chmod +x ./tidalwave
-	docker build -t dustinblackman/tidalwave:latest .
-	rm ./tidalwave
-	docker push dustinblackman/tidalwave:latest
 
 # Creates easyjson file for parser/parser.go
 easyjson:
