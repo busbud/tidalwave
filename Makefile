@@ -72,5 +72,5 @@ setup-linter:
 # Runs tests
 test:
 	make setup-linter
-	ls -ll
+	ls -ll ./vendor
 	gometalinter --vendor --fast --dupl-threshold=100 --cyclo-over=25 --min-occurrences=5 --disable=gas ./...
