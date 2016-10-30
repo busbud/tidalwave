@@ -1,6 +1,6 @@
 VERSION := 0.0.1
 GOVENDOR_TAG := v1.0.8
-LINTER_TAG := V1.0.0
+LINTER_TAG := v1.0.3
 
 # Creates binary
 build:
@@ -14,7 +14,7 @@ bashautocomplete:
 # Gets govendor if not found and installs all dependencies
 deps:
 	@if [ "$$(which govendor)" = "" ]; then \
-		go get -v github.com/kardianos/govendor; \
+		go get -v -u github.com/kardianos/govendor; \
 		cd $$GOPATH/src/github.com/kardianos/govendor;\
 		git checkout tags/$(GOVENDOR_TAG);\
 		go install;\
@@ -62,7 +62,7 @@ install: deps
 # Setups linter configuration for tests
 setup-linter:
 	@if [ "$$(which gometalinter)" = "" ]; then \
-		go get -v github.com/alecthomas/gometalinter; \
+		go get -u -v github.com/alecthomas/gometalinter; \
 		cd $$GOPATH/src/github.com/alecthomas/gometalinter;\
 		git checkout tags/$(LINTER_TAG);\
 		go install;\
