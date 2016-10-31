@@ -72,7 +72,7 @@ Grab the latest release from the [releases](https://github.com/dustinblackman/ti
 
 __Quick install for Linux:__
 ```
-curl -Ls "https://github.com/dustinblackman/tidalwave/releases/download/0.0.1/tidalwave-linux-amd64-0.0.1.tar.gz" | tar xz -C /usr/local/bin/
+curl -Ls "https://github.com/dustinblackman/tidalwave/releases/download/0.0.2/tidalwave-linux-amd64-0.0.2.tar.gz" | tar xz -C /usr/local/bin/
 ```
 
 __Build From Source:__
