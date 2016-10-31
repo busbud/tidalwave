@@ -124,7 +124,7 @@ func New(version string) *TidalwaveServer {
 		return nil
 	})
 
-	app.Run(fastengine.New(":" + viper.GetString("port")))
+	go app.Run(fastengine.New(":" + viper.GetString("port")))
 
 	return &server
 }
