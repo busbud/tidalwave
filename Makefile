@@ -30,7 +30,7 @@ dev-build:
 	reflex -R '^vendor/' -r '\.go$\' -s -- sh -c 'go build -o tidalwave tidalwave.go && ./tidalwave -server'
 
 # Creates binarys for all available systems in gox and then zips/tars for distribution.
-dist: bashautocomplete
+dist:
 	which gox && echo "" || go get github.com/mitchellh/gox
 	rm -rf tmp dist
 	gox -os="linux windows freebsd" -osarch="darwin/amd64" -output='tmp/{{.OS}}-{{.Arch}}-$(VERSION)/{{.Dir}}' -ldflags="-X github.com/dustinblackman/tidalwave/cmd.version=$(VERSION)"
