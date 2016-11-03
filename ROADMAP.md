@@ -22,6 +22,7 @@
 - [x] `SELECT DISTINCT(*)`
 - [x] `SELECT COUNT(DISTINCT(*))`
 - [ ] `SELECT * FROM app WHERE key LIKE '%val%'`
+- [ ] `GROUP BY`
 
 #### Dev
 - [x] Verbose parameter

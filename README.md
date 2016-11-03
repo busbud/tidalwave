@@ -7,7 +7,7 @@ Tidalwave is an awesomely fast command line, server, and client application for 
 
 With a built in API with sockets for live tail, as well as the command line, everything is queryable with SQL. Tidalwave works best with logging modules such as [logrus](https://github.com/Sirupsen/logrus), [bunyan](https://github.com/trentm/node-bunyan), [slf4j](https://github.com/savoirtech/slf4j-json-logger), [python-json-logger](https://github.com/madzak/python-json-logger), [json_logger](https://github.com/rsolomo/json_logger) or anything else that outputs JSON logs.
 
-Tidalwave in it's early stages where it's littered with TODOs, possible bugs, and all the other nifty things that come with early development.
+Tidalwave is in it's early stages where it's littered with TODOs, possible bugs, and all the other nifty things that come with early development.
 
 ## [Features / Roadmap](./ROADMAP.md)
 
