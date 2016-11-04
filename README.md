@@ -102,7 +102,7 @@ tidalwave --client --max-parallelism 2
 __Environment:__
 ```
 export TIDALWAVE_CLIENT=true
-export TIDALWAVE_MAX-PARALLELISM=2
+export TIDALWAVE_MAX_PARALLELISM=2
 ```
 
 __JSON File:__

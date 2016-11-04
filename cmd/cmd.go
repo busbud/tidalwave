@@ -3,6 +3,7 @@ package cmd
 import (
 	"os"
 	"runtime"
+	"strings"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/dustinblackman/tidalwave/cli"
@@ -111,6 +112,7 @@ Home: https://github.com/dustinblackman/tidalwave`,
 	// Load config file
 	viper.SetConfigName("tidalwave")
 	viper.SetEnvPrefix("tidalwave")
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 	viper.SetConfigType("json")
 	viper.AddConfigPath(".")
 	viper.AddConfigPath("/etc")
