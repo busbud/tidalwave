@@ -71,8 +71,7 @@ func New() *cobra.Command {
 		Use:     "tidalwave",
 		Example: `  tidalwave -q "SELECT * FROM myapp WHERE line.cmd = 'uptime' AND date > '2016-10-10'"`,
 		Run:     run,
-		BashCompletionFunction: bashAutocomplete,
-		Short: "A awesomely fast JSON log parsing application queryable with SQL",
+		Short:   "A awesomely fast JSON log parsing application queryable with SQL",
 		Long: `Tidalwave is an awesomely fast command line, server, and client application for recording and parsing JSON logs.
 It has a built in API with sockets for live tail, as well as the command line all queryable with SQL.
 
