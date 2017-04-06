@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	fileDateFormat   = "2006-01-02T15_04_05" // YYYY-MM-DDTHH_mm_ss
+	fileDateFormat   = "2006-01-02T15-04-05" // YYYY-MM-DDTHH_mm_ss
 	folderDateFormat = "2006-01-02"          // YYYY-MM-DD
 )
 
