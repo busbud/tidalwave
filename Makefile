@@ -1,4 +1,4 @@
-VERSION := 0.0.2
+VERSION := 1.0.0
 GOVENDOR_TAG := v1.0.8
 LINTER_TAG := v1.0.3
 
