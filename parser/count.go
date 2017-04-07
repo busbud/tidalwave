@@ -20,6 +20,8 @@ func countParse(query *sqlquery.QueryParams, resultsChan chan<- int, logPath str
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
+	buf := make([]byte, 0, 64*1024)
+	scanner.Buffer(buf, 1024*1024*20) // 20MB
 	for scanner.Scan() {
 		line := scanner.Text()
 		if query.ProcessLine(line) {
