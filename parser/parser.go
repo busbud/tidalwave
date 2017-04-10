@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/dustinblackman/tidalwave/sqlquery"
 	"github.com/spf13/viper"
 )
@@ -96,11 +97,14 @@ func GetLogPaths(query *sqlquery.QueryParams, logRoot string) []string {
 func Query(queryString string) interface{} {
 	viper := viper.GetViper()
 	query := sqlquery.New(queryString)
+	logPaths := GetLogPaths(query, viper.GetString("logroot"))
 	parser := TidalwaveParser{
 		MaxParallelism: viper.GetInt("max-parallelism"),
-		LogPaths:       GetLogPaths(query, viper.GetString("logroot")),
+		LogPaths:       logPaths,
 		Query:          query,
 	}
+
+	logrus.Debugf("Log Paths: %s", logPaths)
 
 	// TODO: Add execution time to results.
 	// TODO: Need to handle nil.

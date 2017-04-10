@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"bufio"
 	"log"
 	"os"
 	"sync"
@@ -20,7 +19,7 @@ func distinctCountParse(query *sqlquery.QueryParams, resultsChan chan<- map[stri
 	}
 	defer file.Close()
 
-	scanner := bufio.NewScanner(file)
+	scanner := createScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
 		if query.ProcessLine(line) {

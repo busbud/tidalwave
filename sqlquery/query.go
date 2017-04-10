@@ -7,7 +7,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/tidwall/gjson"
-	"github.com/xwb1989/sqlparser"
+	sqlparser "github.com/youtube/vitess/go/vt/sqlparser"
 )
 
 const (
@@ -33,7 +33,6 @@ type QueryParam struct {
 type QueryParams struct {
 	From []string // TODO: Rename to Froms
 
-	LogPaths []string
 	AggrPath string
 	Dates    []DateParam
 	Queries  []QueryParam // TODO Rename to Where
@@ -114,19 +113,21 @@ func New(queryString string) *QueryParams {
 
 	// Selects
 	// Makes sure the selected keys we want exists in the line.
+	logrus.Debug(spew.Sdump(queryTree))
 	for _, entry := range queryTree.SelectExprs {
+		// TODO: Support star expression
 		switch entry := entry.(type) {
 		case *sqlparser.NonStarExpr:
 			switch exp := entry.Expr.(type) {
-			// Simply selects
+			// Simple selects
 			case *sqlparser.ColName:
 				queryParams.Selects = append(queryParams.Selects, QueryParam{
 					KeyPath:  sqlparser.String(exp),
 					Operator: "exists",
 				})
 			// DISTINCT()
-			case sqlparser.ValTuple:
-				keyPath := sqlparser.String(exp[0].(*sqlparser.ColName))
+			case *sqlparser.ParenExpr:
+				keyPath := sqlparser.String(exp)
 				queryParams.Selects = append(queryParams.Selects, QueryParam{
 					KeyPath:  keyPath,
 					Operator: "exists",
@@ -151,8 +152,8 @@ func New(queryString string) *QueryParams {
 					Operator: "exists",
 				})
 
-				// This will need to get a bit more advance when we start adding other functions.
-				name := string(exp.Name)
+				// TODO This will need to get a bit more advance when we start adding other functions.
+				name := sqlparser.String(exp.Name)
 				if name == "count" && exp.Distinct {
 					queryParams.Type = TypeCountDistinct
 				} else {

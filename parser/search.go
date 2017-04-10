@@ -26,12 +26,9 @@ func searchParse(query *sqlquery.QueryParams, logStruct *LogQueryStruct, coreLim
 	}
 	defer file.Close()
 
-	scanner := bufio.NewScanner(file)
-	buf := make([]byte, 0, 64*1024)
-	scanner.Buffer(buf, 1024*1024*20) // 20MB
-
 	lineNumber := -1
 	lastLineNumber := 0
+	scanner := createScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
 		lineNumber++
