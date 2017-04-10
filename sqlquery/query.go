@@ -127,7 +127,7 @@ func New(queryString string) *QueryParams {
 				})
 			// DISTINCT()
 			case *sqlparser.ParenExpr:
-				keyPath := sqlparser.String(exp)
+				keyPath := sqlparser.String(exp.Expr.(*sqlparser.ColName))
 				queryParams.Selects = append(queryParams.Selects, QueryParam{
 					KeyPath:  keyPath,
 					Operator: "exists",
@@ -140,7 +140,7 @@ func New(queryString string) *QueryParams {
 				}
 			// All other function expressions. COUNT(), COUNT(DISTINCT())
 			case *sqlparser.FuncExpr:
-				switch aggrPath := exp.Exprs[0].(*sqlparser.NonStarExpr).Expr.(type) {
+				switch aggrPath := exp.Exprs[0].(*sqlparser.NonStarExpr).Expr.(*sqlparser.ParenExpr).Expr.(type) {
 				case sqlparser.ValTuple:
 					queryParams.AggrPath = sqlparser.String(aggrPath[0].(*sqlparser.ColName))
 				case *sqlparser.ColName:
