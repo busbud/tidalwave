@@ -31,7 +31,7 @@ func run(rootCmd *cobra.Command, args []string) {
 	viper.ReadInConfig()
 
 	// Logging
-	if viper.GetBool("verbose") {
+	if viper.GetBool("debug") {
 		logrus.SetLevel(logrus.DebugLevel)
 	} else {
 		logrus.SetFormatter(&logrus.JSONFormatter{})
@@ -84,7 +84,7 @@ Home: https://github.com/dustinblackman/tidalwave`,
 	flags.Int("max-parallelism", maxParallelism(),
 		"Set the maximum amount of threads to run when processing log files during queries. Default is the number of cores on system.")
 	flags.String("logroot", "./logs", "Log root directory where log files are stored")
-	flags.Bool("verbose", false, "Enable verbose logging")
+	flags.Bool("debug", false, "Enable debug logging")
 
 	// Cli Flags
 	flags.StringP("query", "q", "", "SQL query to execute against logs")
@@ -121,7 +121,7 @@ Home: https://github.com/dustinblackman/tidalwave`,
 	for _, param := range []string{
 		"max-parallelism",
 		"logroot",
-		"verbose",
+		"debug",
 		"query",
 		"tail",
 		"client",

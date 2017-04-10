@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"log"
 	"os"
 	"sync"
 
@@ -15,7 +14,7 @@ func distinctCountParse(query *sqlquery.QueryParams, resultsChan chan<- map[stri
 	results := map[string]int{}
 	file, err := os.Open(logPath)
 	if err != nil {
-		log.Fatal(err)
+		zaplog.Fatal(err)
 	}
 	defer file.Close()
 
@@ -36,7 +35,7 @@ func distinctCountParse(query *sqlquery.QueryParams, resultsChan chan<- map[stri
 	}
 
 	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
+		zaplog.Fatal(err)
 	}
 
 	resultsChan <- results

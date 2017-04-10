@@ -2,7 +2,6 @@ package parser
 
 import (
 	"bufio"
-	"log"
 	"os"
 	"strings"
 	"sync"
@@ -22,7 +21,7 @@ func searchParse(query *sqlquery.QueryParams, logStruct *LogQueryStruct, coreLim
 
 	file, err := os.Open(logStruct.LogPath)
 	if err != nil {
-		log.Fatal(err)
+		zaplog.Fatal(err)
 	}
 	defer file.Close()
 
@@ -44,7 +43,7 @@ func searchParse(query *sqlquery.QueryParams, logStruct *LogQueryStruct, coreLim
 	}
 
 	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
+		zaplog.Fatal(err)
 	}
 
 	<-coreLimit
@@ -53,7 +52,7 @@ func searchParse(query *sqlquery.QueryParams, logStruct *LogQueryStruct, coreLim
 func searchSubmit(query *sqlquery.QueryParams, logStruct *LogQueryStruct, submitChannel chan<- string) {
 	file, err := os.Open(logStruct.LogPath)
 	if err != nil {
-		log.Fatal(err)
+		zaplog.Fatal(err)
 	}
 	defer file.Close()
 

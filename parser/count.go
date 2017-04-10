@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"log"
 	"os"
 	"sync"
 
@@ -14,7 +13,7 @@ func countParse(query *sqlquery.QueryParams, resultsChan chan<- int, logPath str
 	count := 0
 	file, err := os.Open(logPath)
 	if err != nil {
-		log.Fatal(err)
+		zaplog.Fatal(err)
 	}
 	defer file.Close()
 
@@ -27,7 +26,7 @@ func countParse(query *sqlquery.QueryParams, resultsChan chan<- int, logPath str
 	}
 
 	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
+		zaplog.Fatal(err)
 	}
 
 	resultsChan <- count
