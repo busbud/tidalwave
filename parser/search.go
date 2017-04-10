@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"bufio"
 	"os"
 	"strings"
 	"sync"
@@ -56,8 +55,9 @@ func searchSubmit(query *sqlquery.QueryParams, logStruct *LogQueryStruct, submit
 	}
 	defer file.Close()
 
-	scanner := bufio.NewScanner(file)
+	scanner := createScanner(file)
 	lineNumber := -1
+	// TODO: Handle scanner errors
 	for scanner.Scan() {
 		line := scanner.Text()
 		lineNumber++
