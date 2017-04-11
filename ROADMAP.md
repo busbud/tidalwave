@@ -17,10 +17,11 @@
 - [ ] Submitting logs to remote Tidalwave server
 
 #### Queries
-- [x] `SELECT *`, `SELECT line.cmd`
+- [x] `SELECT *`, `SELECT line.cmd`, `SELECT * FROM foo, bar`
 - [x] `SELECT COUNT(*)`
 - [x] `SELECT DISTINCT(*)`
 - [x] `SELECT COUNT(DISTINCT(*))`
+- [x] `SELECT * FROM app WHERE key IN ('a', 'b')`
 - [ ] `SELECT * FROM app WHERE key LIKE '%val%'`
 - [ ] `GROUP BY`
 

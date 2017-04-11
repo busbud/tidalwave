@@ -17,6 +17,13 @@ func ProcessInt(q *QueryParam, res int) bool {
 	switch q.Operator {
 	case "exists":
 		return true
+	case "in":
+		for _, val := range q.ValIntArray {
+			if val == res {
+				return true
+			}
+		}
+		return false
 	case "=", "==":
 		if res == q.ValInt {
 			return true
@@ -53,6 +60,13 @@ func ProcessString(q *QueryParam, res string) bool {
 		if len(res) > 0 {
 			return true
 		}
+	case "in":
+		for _, val := range q.ValStringArray {
+			if val == res {
+				return true
+			}
+		}
+		return false
 	case "=", "==":
 		if res == q.ValString {
 			return true

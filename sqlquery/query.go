@@ -23,10 +23,12 @@ const (
 
 // QueryParam holds a single piece of a queries WHERE and SELECT statements to be processed on log lines
 type QueryParam struct {
-	KeyPath   string
-	Operator  string
-	ValString string
-	ValInt    int
+	KeyPath        string
+	Operator       string
+	ValString      string
+	ValStringArray []string
+	ValInt         int
+	ValIntArray    []int
 }
 
 // QueryParams holds all the information for a given query such SELECT, FROM, and WHERE statements to be easily processed later.
@@ -47,10 +49,21 @@ func handleCompareExpr(expr *sqlparser.ComparisonExpr) QueryParam {
 	}
 
 	right := sqlparser.String(expr.Right)
-	if i, err := strconv.Atoi(right); err == nil {
-		param.ValInt = i
+	if expr.Operator == "in" {
+		for _, val := range strings.Split(right[1:len(right)-1], ", ") {
+			if i, err := strconv.Atoi(val); err == nil {
+				param.ValIntArray = append(param.ValIntArray, i)
+			} else {
+				param.ValStringArray = append(param.ValStringArray, stripQuotes(val))
+			}
+
+		}
 	} else {
-		param.ValString = stripQuotes(right)
+		if i, err := strconv.Atoi(right); err == nil {
+			param.ValInt = i
+		} else {
+			param.ValString = stripQuotes(right)
+		}
 	}
 
 	return param
