@@ -9,6 +9,7 @@ import (
 	fsnotify "gopkg.in/fsnotify.v1"
 
 	"github.com/dustinblackman/tidalwave/client"
+	"github.com/dustinblackman/tidalwave/logger"
 	"github.com/dustinblackman/tidalwave/parser"
 	"github.com/dustinblackman/tidalwave/sqlquery"
 	"github.com/spf13/viper"
@@ -18,6 +19,7 @@ import (
 func Start() {
 	viper := viper.GetViper()
 	results := parser.Query(viper.GetString("query"))
+	zaplog := logger.New()
 
 	switch res := results.(type) {
 	case parser.ChannelResults:
