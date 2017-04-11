@@ -1,13 +1,13 @@
 package cli
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"path"
 
 	fsnotify "gopkg.in/fsnotify.v1"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/dustinblackman/tidalwave/client"
 	"github.com/dustinblackman/tidalwave/parser"
 	"github.com/dustinblackman/tidalwave/sqlquery"
@@ -29,7 +29,12 @@ func Start() {
 			fmt.Println(line)
 		}
 	case parser.ObjectResults:
-		spew.Dump(res.Results)
+		str, err := json.Marshal(res.Results)
+		if err != nil {
+			zaplog.Error("Error converting object results to JSON", err)
+			return
+		}
+		fmt.Println(string(str))
 	case parser.IntResults:
 		fmt.Println(res.Results)
 	}
