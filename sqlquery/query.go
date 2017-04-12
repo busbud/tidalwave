@@ -25,10 +25,10 @@ const (
 type QueryParam struct {
 	KeyPath        string
 	Operator       string
-	ValString      string
-	ValStringArray []string
 	ValInt         int
 	ValIntArray    []int
+	ValString      string
+	ValStringArray []string
 }
 
 // QueryParams holds all the information for a given query such SELECT, FROM, and WHERE statements to be easily processed later.

@@ -23,6 +23,7 @@
 - [x] `SELECT COUNT(DISTINCT(*))`
 - [x] `SELECT * FROM app WHERE key IN ('a', 'b')`
 - [ ] `SELECT * FROM app WHERE key LIKE '%val%'`
+- [ ] `SELECT * FROM app LIMIT 1`
 - [ ] `GROUP BY`
 
 #### Dev
