@@ -56,7 +56,7 @@ type ObjectResults struct {
 func dateMatch(date time.Time, dates []sqlquery.DateParam) bool {
 	acceptedDatesCount := 0
 	for _, dateParam := range dates {
-		if (dateParam.Type == "start" && sqlquery.ProcessDate(&dateParam, date)) || (dateParam.Type == "end" && sqlquery.ProcessDate(&dateParam, date)) {
+		if sqlquery.ProcessDate(&dateParam, date) {
 			acceptedDatesCount++
 		}
 	}

@@ -91,11 +91,11 @@ func ProcessDate(d *DateParam, logDate time.Time) bool {
 	case "exists":
 		return true
 	case "=", "==":
-		if d.DateTime.Equal(logDate) || (logDate.After(dayStart) && logDate.Before(dayEnd)) {
+		if d.DateTime.Equal(logDate) || (!d.TimeUsed && logDate.After(dayStart) && logDate.Before(dayEnd)) {
 			return true
 		}
 	case "!=":
-		if !d.DateTime.Equal(logDate) || (!logDate.After(dayStart) && !logDate.Before(dayEnd)) {
+		if !d.DateTime.Equal(logDate) || (!d.TimeUsed && !logDate.After(dayStart) && !logDate.Before(dayEnd)) {
 			return true
 		}
 	case ">":

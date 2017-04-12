@@ -9,13 +9,15 @@ type DateParam struct {
 	Date     string
 	DateTime time.Time
 	Operator string
+	TimeUsed bool
 	Type     string
 }
 
 func createDateParam(date, operator string) DateParam {
-	dateParam := DateParam{Operator: operator}
+	dateParam := DateParam{Operator: operator, TimeUsed: true}
 	date = stripQuotes(date)
 	if len(date) > 0 && len(date) <= 10 {
+		dateParam.TimeUsed = false
 		if operator == "<=" {
 			date = date + "T23:59:59"
 		} else {
@@ -23,11 +25,9 @@ func createDateParam(date, operator string) DateParam {
 		}
 	}
 	dateParam.Date = date
-
+	dateParam.Type = "start"
 	if operator == "<" || operator == "<=" {
 		dateParam.Type = "end"
-	} else {
-		dateParam.Type = "start"
 	}
 
 	dateTime, err := time.Parse(queryDateFormat, date)
