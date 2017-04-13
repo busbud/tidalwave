@@ -19,6 +19,7 @@ type LogQueryStruct struct {
 func searchParse(query *sqlquery.QueryParams, logStruct *LogQueryStruct, coreLimit <-chan bool, wg *sync.WaitGroup) {
 	defer wg.Done()
 
+	logger.Logger.Debugf("Processing: %s", logStruct.LogPath)
 	file, err := os.Open(logStruct.LogPath)
 	if err != nil {
 		logger.Logger.Fatal(err)
