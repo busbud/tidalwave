@@ -42,6 +42,15 @@ type QueryParams struct {
 	Type     string
 }
 
+func assignTypeToParam(param QueryParam, value string) QueryParam {
+	if i, err := strconv.Atoi(value); err == nil {
+		param.ValInt = i
+	} else {
+		param.ValString = stripQuotes(value)
+	}
+	return param
+}
+
 func handleCompareExpr(expr *sqlparser.ComparisonExpr) QueryParam {
 	param := QueryParam{
 		KeyPath:  stripQuotes(sqlparser.String(expr.Left)),
@@ -59,11 +68,7 @@ func handleCompareExpr(expr *sqlparser.ComparisonExpr) QueryParam {
 
 		}
 	} else {
-		if i, err := strconv.Atoi(right); err == nil {
-			param.ValInt = i
-		} else {
-			param.ValString = stripQuotes(right)
-		}
+		param = assignTypeToParam(param, right)
 	}
 
 	return param
@@ -73,13 +78,36 @@ func handleAndExpr(expr *sqlparser.AndExpr) []QueryParam {
 	params := []QueryParam{}
 
 	for _, side := range []interface{}{expr.Left, expr.Right} {
-		switch expr := side.(type) {
-		case *sqlparser.AndExpr:
-			params = append(params, handleAndExpr(expr)...)
-		case *sqlparser.ComparisonExpr:
-			params = append(params, handleCompareExpr(expr))
-		}
+		params = append(params, handleExpr(side)...)
 	}
+	return params
+}
+
+func handleRandExpr(expr *sqlparser.RangeCond) []QueryParam {
+	keypath := stripQuotes(sqlparser.String(expr.Left))
+	fromQuery := assignTypeToParam(QueryParam{
+		KeyPath:  keypath,
+		Operator: ">=",
+	}, sqlparser.String(expr.From))
+	toQuery := assignTypeToParam(QueryParam{
+		KeyPath:  keypath,
+		Operator: "<=",
+	}, sqlparser.String(expr.To))
+
+	return []QueryParam{fromQuery, toQuery}
+}
+
+func handleExpr(entry interface{}) []QueryParam {
+	params := []QueryParam{}
+	switch expr := entry.(type) {
+	case *sqlparser.AndExpr:
+		params = append(params, handleAndExpr(expr)...)
+	case *sqlparser.ComparisonExpr:
+		params = append(params, handleCompareExpr(expr))
+	case *sqlparser.RangeCond:
+		params = append(params, handleRandExpr(expr)...)
+	}
+
 	return params
 }
 
@@ -189,15 +217,7 @@ func New(queryString string) *QueryParams {
 	}
 
 	if queryTree.Where != nil {
-		wheres := []QueryParam{}
-		switch expr := queryTree.Where.Expr.(type) {
-		case *sqlparser.AndExpr:
-			wheres = append(wheres, handleAndExpr(expr)...)
-		case *sqlparser.ComparisonExpr:
-			wheres = append(wheres, handleCompareExpr(expr))
-		}
-
-		for _, entry := range wheres {
+		for _, entry := range handleExpr(queryTree.Where.Expr) {
 			if entry.KeyPath == "date" {
 				queryParams.Dates = append(queryParams.Dates, createDateParam(entry.ValString, entry.Operator))
 			} else {

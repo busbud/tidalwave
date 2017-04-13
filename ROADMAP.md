@@ -24,7 +24,7 @@
 - [x] `SELECT * FROM app WHERE key IN ('a', 'b')`
 - [ ] `SELECT * FROM app WHERE key LIKE '%val%'`
 - [ ] `SELECT * FROM app WHERE key ILIKE '%val%'`
-- [ ] `SELECT * FROM app WHERE date BETWEEN '2017-04-10' AND '2017-04-12';`
+- [x] `SELECT * FROM app WHERE date BETWEEN '2017-04-10' AND '2017-04-12';`
 - [ ] `SELECT * FROM app LIMIT 1`
 - [ ] `GROUP BY`
 
