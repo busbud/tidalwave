@@ -2,7 +2,8 @@ package sqlquery
 
 import (
 	"strings"
-	"time"
+
+	"github.com/dustinblackman/moment"
 )
 
 // TODO: Only strip at beginning and end
@@ -79,39 +80,74 @@ func ProcessString(q *QueryParam, res string) bool {
 	return false
 }
 
+func withinDay(logDate, dayStart, dayEnd moment.Moment) bool {
+	return logDate.IsSame(dayStart, "YYYY-MM-DD") && logDate.IsSame(dayEnd, "YYYY-MM-DD")
+}
+
 // ProcessDate handles processing a date in a query
-func ProcessDate(d *DateParam, logDate time.Time) bool {
+func ProcessDate(d *DateParam, logDate moment.Moment, dateOnly bool) bool {
 	if len(d.Date) == 0 {
 		return true
 	}
 
-	dayStart := d.DateTime.Truncate(time.Duration(24 * time.Hour)).Add(time.Duration(-1) * time.Second)
-	dayEnd := dayStart.Add(time.Duration(86400) * time.Second)
+	dayStart := *d.DateTime.Clone().StartOfDay().SubSeconds(1)
+	dayEnd := *d.DateTime.Clone().EndOfDay()
+
 	switch d.Operator {
 	case "exists":
 		return true
 	case "=", "==":
-		if d.DateTime.Equal(logDate) || (!d.TimeUsed && logDate.After(dayStart) && logDate.Before(dayEnd)) {
+		if d.DateTime.IsSame(logDate, queryDateFormat) || (!d.TimeUsed && withinDay(logDate, dayStart, dayEnd)) {
 			return true
 		}
 	case "!=":
-		if !d.DateTime.Equal(logDate) || (!d.TimeUsed && !logDate.After(dayStart) && !logDate.Before(dayEnd)) {
+		if !d.DateTime.IsSame(logDate, queryDateFormat) || (!d.TimeUsed && !withinDay(logDate, dayStart, dayEnd)) {
 			return true
 		}
 	case ">":
-		if d.DateTime.Before(logDate) {
+		if dateOnly {
+			startOfDay := d.DateTime.Clone().StartOfDay()
+			if !d.TimeUsed && startOfDay.IsBefore(logDate) {
+				return true
+			}
+			if d.TimeUsed && (startOfDay.IsBefore(logDate) || startOfDay.IsSame(logDate, "YYYY-MM-DD")) {
+				return true
+			}
+		}
+		if d.DateTime.IsBefore(logDate) {
 			return true
 		}
 	case ">=":
-		if d.DateTime.Before(logDate) || d.DateTime.Equal(logDate) {
+		if dateOnly {
+			startOfDay := d.DateTime.Clone().StartOfDay()
+			if startOfDay.IsBefore(logDate) || startOfDay.IsSame(logDate, "YYYY-MM-DD") {
+				return true
+			}
+		}
+		if d.DateTime.IsBefore(logDate) || d.DateTime.IsSame(logDate, queryDateFormat) {
 			return true
 		}
 	case "<":
-		if d.DateTime.After(logDate) {
+		if dateOnly {
+			startOfDay := d.DateTime.Clone().StartOfDay()
+			if !d.TimeUsed && startOfDay.IsAfter(logDate) {
+				return true
+			}
+			if d.TimeUsed && (startOfDay.IsAfter(logDate) || startOfDay.IsSame(logDate, "YYYY-MM-DD")) {
+				return true
+			}
+		}
+		if d.DateTime.IsAfter(logDate) {
 			return true
 		}
 	case "<=":
-		if d.DateTime.After(logDate) || d.DateTime.Equal(logDate) {
+		if dateOnly {
+			startOfDay := d.DateTime.Clone().StartOfDay()
+			if startOfDay.IsAfter(logDate) || startOfDay.IsSame(logDate, "YYYY-MM-DD") {
+				return true
+			}
+		}
+		if d.DateTime.IsAfter(logDate) || d.DateTime.IsSame(logDate, queryDateFormat) {
 			return true
 		}
 	}

@@ -1,13 +1,13 @@
 package sqlquery
 
-import "time"
+import "github.com/dustinblackman/moment"
 
-const queryDateFormat = "2006-01-02T15:04:05" // YYYY-MM-DDTHH:mm:ss
+const queryDateFormat = "YYYY-MM-DDTHH:mm:ss"
 
 // DateParam stores date query information.
 type DateParam struct {
 	Date     string
-	DateTime time.Time
+	DateTime *moment.Moment
 	Operator string
 	TimeUsed bool
 	Type     string
@@ -30,10 +30,6 @@ func createDateParam(date, operator string) DateParam {
 		dateParam.Type = "end"
 	}
 
-	dateTime, err := time.Parse(queryDateFormat, date)
-	if len(date) > 0 && err == nil {
-		dateParam.DateTime = dateTime
-	}
-
+	dateParam.DateTime = moment.New().Moment(queryDateFormat, date)
 	return dateParam
 }

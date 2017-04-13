@@ -171,6 +171,12 @@
 			"revisionTime": "2016-10-20T21:32:27Z"
 		},
 		{
+			"checksumSHA1": "gTX7Ka4gxJZcJKSympZlui8n2Zk=",
+			"path": "github.com/dustinblackman/moment",
+			"revision": "fd1acf26c3c025ac3e6af9ffea7c47a3898b3e1f",
+			"revisionTime": "2017-04-12T20:24:17Z"
+		},
+		{
 			"checksumSHA1": "nmc2qcdbg17Ny8tHeEDQuphV6jA=",
 			"path": "github.com/fsnotify/fsnotify",
 			"revision": "bd2828f9f176e52d7222e565abb2d338d3f3c103",
