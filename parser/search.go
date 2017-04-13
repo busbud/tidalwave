@@ -5,6 +5,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/dustinblackman/tidalwave/logger"
 	"github.com/dustinblackman/tidalwave/sqlquery"
 	"github.com/tidwall/gjson"
 )
@@ -20,7 +21,7 @@ func searchParse(query *sqlquery.QueryParams, logStruct *LogQueryStruct, coreLim
 
 	file, err := os.Open(logStruct.LogPath)
 	if err != nil {
-		zaplog.Fatal(err)
+		logger.Logger.Fatal(err)
 	}
 	defer file.Close()
 
@@ -42,7 +43,7 @@ func searchParse(query *sqlquery.QueryParams, logStruct *LogQueryStruct, coreLim
 	}
 
 	if err := scanner.Err(); err != nil {
-		zaplog.Fatal(err)
+		logger.Logger.Fatal(err)
 	}
 
 	<-coreLimit
@@ -51,7 +52,7 @@ func searchParse(query *sqlquery.QueryParams, logStruct *LogQueryStruct, coreLim
 func searchSubmit(query *sqlquery.QueryParams, logStruct *LogQueryStruct, submitChannel chan<- string) {
 	file, err := os.Open(logStruct.LogPath)
 	if err != nil {
-		zaplog.Fatal(err)
+		logger.Logger.Fatal(err)
 	}
 	defer file.Close()
 

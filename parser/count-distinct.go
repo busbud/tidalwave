@@ -4,6 +4,7 @@ import (
 	"os"
 	"sync"
 
+	"github.com/dustinblackman/tidalwave/logger"
 	"github.com/dustinblackman/tidalwave/sqlquery"
 	"github.com/tidwall/gjson"
 )
@@ -14,7 +15,7 @@ func distinctCountParse(query *sqlquery.QueryParams, resultsChan chan<- map[stri
 	results := map[string]int{}
 	file, err := os.Open(logPath)
 	if err != nil {
-		zaplog.Fatal(err)
+		logger.Logger.Fatal(err)
 	}
 	defer file.Close()
 
@@ -35,7 +36,7 @@ func distinctCountParse(query *sqlquery.QueryParams, resultsChan chan<- map[stri
 	}
 
 	if err := scanner.Err(); err != nil {
-		zaplog.Fatal(err)
+		logger.Logger.Fatal(err)
 	}
 
 	resultsChan <- results

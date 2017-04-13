@@ -4,13 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/dustinblackman/tidalwave/logger"
 	"github.com/dustinblackman/tidalwave/server"
 	"github.com/spf13/viper"
-)
-
-var (
-	logfields = logrus.Fields{"module": "client"}
 )
 
 // TidalwaveClient stores the state required for log files to be processed and saved
@@ -42,7 +38,7 @@ func (tc *TidalwaveClient) writeLog(appName string, logEntry *string) {
 
 // AddServer adds a local server instance to client to be used for passing back logs
 func (tc *TidalwaveClient) AddServer(server *server.TidalwaveServer) {
-	logrus.WithFields(logfields).Debug("Adding server")
+	logger.Logger.Debug("Adding server")
 	tc.Server = server
 }
 
@@ -56,24 +52,23 @@ func (tc *TidalwaveClient) AddChannel(appName string, channel chan *string) {
 
 // New parses all the available flags to begin running in client mode
 func New() *TidalwaveClient {
-	logrus := logrus.WithFields(logfields)
-	logrus.Info("Starting Client")
+	logger.Logger.Info("Starting Client")
 	viper := viper.GetViper()
 	hostname, _ := os.Hostname()
 	client := TidalwaveClient{Hostname: hostname}
 
 	if len(viper.GetStringSlice("fileentry")) > 0 {
-		logrus.Info("Starting Log aggregator")
+		logger.Logger.Info("Starting Log aggregator")
 		client.fileAggregator(viper.GetStringSlice("fileentry"))
 	}
 
 	if len(viper.GetStringSlice("pidentry")) > 0 {
-		logrus.Info("Starting PID aggregator")
+		logger.Logger.Info("Starting PID aggregator")
 		client.fileAggregator(viper.GetStringSlice("pidentry"))
 	}
 
 	if viper.GetBool("docker") {
-		logrus.Info("Starting Docker aggregator on " + viper.GetString("docker-host"))
+		logger.Logger.Info("Starting Docker aggregator on " + viper.GetString("docker-host"))
 		client.dockerAggregator()
 	}
 

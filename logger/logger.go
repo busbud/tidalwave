@@ -1,18 +1,17 @@
 package logger
 
-import (
-	"github.com/spf13/viper"
-	"go.uber.org/zap"
-)
+import "go.uber.org/zap"
 
-// New creates a new zap logger
-func New() *zap.SugaredLogger {
-	viper := viper.GetViper()
+// Logger is the initialized logger that can be used in other modules
+var Logger *zap.SugaredLogger
+
+// Init setups the logger and stores it in global
+func Init(debug bool) {
 	var initLogger *zap.Logger
-	if viper.GetBool("debug") {
+	if debug {
 		initLogger, _ = zap.NewDevelopment()
 	} else {
 		initLogger, _ = zap.NewProduction()
 	}
-	return initLogger.Sugar()
+	Logger = initLogger.Sugar()
 }

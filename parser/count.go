@@ -4,6 +4,7 @@ import (
 	"os"
 	"sync"
 
+	"github.com/dustinblackman/tidalwave/logger"
 	"github.com/dustinblackman/tidalwave/sqlquery"
 )
 
@@ -13,7 +14,7 @@ func countParse(query *sqlquery.QueryParams, resultsChan chan<- int, logPath str
 	count := 0
 	file, err := os.Open(logPath)
 	if err != nil {
-		zaplog.Fatal(err)
+		logger.Logger.Fatal(err)
 	}
 	defer file.Close()
 
@@ -26,7 +27,7 @@ func countParse(query *sqlquery.QueryParams, resultsChan chan<- int, logPath str
 	}
 
 	if err := scanner.Err(); err != nil {
-		zaplog.Fatal(err)
+		logger.Logger.Fatal(err)
 	}
 
 	resultsChan <- count

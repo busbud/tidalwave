@@ -4,8 +4,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/davecgh/go-spew/spew"
+	"github.com/dustinblackman/tidalwave/logger"
 	"github.com/tidwall/gjson"
 	sqlparser "github.com/youtube/vitess/go/vt/sqlparser"
 )
@@ -112,21 +112,20 @@ func (qp *QueryParams) ProcessLine(line string) bool {
 
 // New parses a query string and returns a newly created QueryParams struc holding all parsed data.
 func New(queryString string) *QueryParams {
-	logrus := logrus.WithFields(logrus.Fields{"module": "sqlquery"})
-	logrus.Debug("Query: " + queryString)
+	logger.Logger.Debug("Query: " + queryString)
 	queryParams := QueryParams{Type: TypeSearch} // Default is search. TODO Move to if statement
 
 	// Fixes "date" breaking the parser by wrapping it in quotes
 	queryString = strings.Replace(queryString, " date", " 'date'", -1)
 	tree, err := sqlparser.Parse(queryString)
 	if err != nil {
-		logrus.Error(err.Error())
+		logger.Logger.Error(err.Error())
 	}
 	queryTree := tree.(*sqlparser.Select)
 
 	// Selects
 	// Makes sure the selected keys we want exists in the line.
-	logrus.Debug(spew.Sdump(queryTree))
+	logger.Logger.Debug(spew.Sdump(queryTree))
 	for _, entry := range queryTree.SelectExprs {
 		// TODO: Support star expression
 		switch entry := entry.(type) {
@@ -208,6 +207,6 @@ func New(queryString string) *QueryParams {
 	}
 
 	queryParams.Queries = append(queryParams.Selects, queryParams.Queries...)
-	logrus.Debug(spew.Sdump(queryParams))
+	logger.Logger.Debug(spew.Sdump(queryParams))
 	return &queryParams
 }

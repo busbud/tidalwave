@@ -8,7 +8,7 @@ import (
 	"path"
 	"time"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/dustinblackman/tidalwave/logger"
 	"github.com/dustinblackman/tidalwave/parser"
 	"github.com/labstack/echo"
 	fastengine "github.com/labstack/echo/engine/fasthttp"
@@ -58,8 +58,7 @@ func jsonError(ctx echo.Context, err error) {
 
 // New creates and starts the API server
 func New(version string) *TidalwaveServer {
-	logrus := logrus.WithFields(logrus.Fields{"module": "server"})
-	logrus.Info("Starting Server")
+	logger.Logger.Info("Starting Server")
 	viper := viper.GetViper()
 	server := TidalwaveServer{viper.GetString("logroot"), NewSocketsManager()}
 
@@ -120,7 +119,7 @@ func New(version string) *TidalwaveServer {
 		}
 
 		elapsed := time.Since(start)
-		logrus.Debug("Execution time: %s\n", elapsed)
+		logger.Logger.Debug("Execution time: %s\n", elapsed)
 		return nil
 	})
 

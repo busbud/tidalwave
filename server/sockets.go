@@ -1,9 +1,8 @@
 package server
 
 import (
-	"log"
-
 	"github.com/clevergo/websocket"
+	"github.com/dustinblackman/tidalwave/logger"
 	"github.com/dustinblackman/tidalwave/sqlquery"
 	"github.com/labstack/echo"
 	fastengine "github.com/labstack/echo/engine/fasthttp"
@@ -94,7 +93,7 @@ func (sm *SocketsManager) StartConnection(ctx echo.Context) error {
 	})
 
 	if err != nil {
-		log.Println(err)
+		logger.Logger.Error(err)
 		return err
 	}
 

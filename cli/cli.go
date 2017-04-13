@@ -19,7 +19,6 @@ import (
 func Start() {
 	viper := viper.GetViper()
 	results := parser.Query(viper.GetString("query"))
-	zaplog := logger.New()
 
 	switch res := results.(type) {
 	case parser.ChannelResults:
@@ -33,7 +32,7 @@ func Start() {
 	case parser.ObjectResults:
 		str, err := json.Marshal(res.Results)
 		if err != nil {
-			zaplog.Error("Error converting object results to JSON", err)
+			logger.Logger.Error("Error converting object results to JSON", err)
 			return
 		}
 		fmt.Println(string(str))

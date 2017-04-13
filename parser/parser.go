@@ -9,10 +9,7 @@ import (
 	"github.com/dustinblackman/tidalwave/logger"
 	"github.com/dustinblackman/tidalwave/sqlquery"
 	"github.com/spf13/viper"
-	"go.uber.org/zap"
 )
-
-var zaplog *zap.SugaredLogger
 
 const (
 	fileDateFormat   = "YYYY-MM-DDTHH-mm-ss"
@@ -99,7 +96,6 @@ func GetLogPaths(query *sqlquery.QueryParams, logRoot string) []string {
 // Query executes a given query string.
 func Query(queryString string) interface{} {
 	viper := viper.GetViper()
-	zaplog = logger.New()
 
 	query := sqlquery.New(queryString)
 	logPaths := GetLogPaths(query, viper.GetString("logroot"))
@@ -109,7 +105,7 @@ func Query(queryString string) interface{} {
 		Query:          query,
 	}
 
-	zaplog.Debugf("Log Paths: %s", logPaths)
+	logger.Logger.Debugf("Log Paths: %s", logPaths)
 
 	// TODO: Add execution time to results.
 	// TODO: Need to handle nil.

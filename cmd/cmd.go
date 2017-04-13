@@ -5,9 +5,9 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/dustinblackman/tidalwave/cli"
 	"github.com/dustinblackman/tidalwave/client"
+	"github.com/dustinblackman/tidalwave/logger"
 	"github.com/dustinblackman/tidalwave/server"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -30,13 +30,8 @@ func run(rootCmd *cobra.Command, args []string) {
 	viper.AutomaticEnv()
 	viper.ReadInConfig()
 
-	// Logging
-	if viper.GetBool("debug") {
-		logrus.SetLevel(logrus.DebugLevel)
-	} else {
-		logrus.SetFormatter(&logrus.JSONFormatter{})
-		logrus.SetLevel(logrus.InfoLevel)
-	}
+	// Init's global logger
+	logger.Init(viper.GetBool("debug"))
 
 	// Server and Client
 	if viper.GetBool("server") && viper.GetBool("client") {
