@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"os"
 	"strings"
 	"sync"
@@ -33,6 +34,7 @@ func searchParse(query *sqlquery.QueryParams, logStruct *LogQueryStruct, coreLim
 		line := scanner.Text()
 		lineNumber++
 
+		fmt.Printf("Line: %d | Last Line: %d", lineNumber, lastLineNumber)
 		if query.ProcessLine(line) {
 			if lineNumber == (lastLineNumber+1) && lineNumber != 0 {
 				logStruct.LineNumbers[len(logStruct.LineNumbers)-1][1] = lineNumber
