@@ -21,6 +21,10 @@ const (
 	TypeSearch = "search"
 )
 
+var stringReplacements = [][]string{
+	{"-", "__DASH__"},
+}
+
 // QueryParam holds a single piece of a queries WHERE and SELECT statements to be processed on log lines
 type QueryParam struct {
 	KeyPath        string
@@ -42,18 +46,27 @@ type QueryParams struct {
 	Type     string
 }
 
+// Youtube's SQL parser doesn't like some characters in parts of the query.
+// We replace them in New, and them restore them here after parsing the sql parsers response.
+func repairString(key string) string {
+	for _, entry := range stringReplacements {
+		key = strings.Replace(key, entry[1], entry[0], -1)
+	}
+	return key
+}
+
 func assignTypeToParam(param QueryParam, value string) QueryParam {
 	if i, err := strconv.Atoi(value); err == nil {
 		param.ValInt = i
 	} else {
-		param.ValString = stripQuotes(value)
+		param.ValString = repairString(stripQuotes(value))
 	}
 	return param
 }
 
 func handleCompareExpr(expr *sqlparser.ComparisonExpr) QueryParam {
 	param := QueryParam{
-		KeyPath:  stripQuotes(sqlparser.String(expr.Left)),
+		KeyPath:  repairString(stripQuotes(sqlparser.String(expr.Left))),
 		Operator: expr.Operator,
 	}
 
@@ -63,7 +76,7 @@ func handleCompareExpr(expr *sqlparser.ComparisonExpr) QueryParam {
 			if i, err := strconv.Atoi(val); err == nil {
 				param.ValIntArray = append(param.ValIntArray, i)
 			} else {
-				param.ValStringArray = append(param.ValStringArray, stripQuotes(val))
+				param.ValStringArray = append(param.ValStringArray, repairString(stripQuotes(val)))
 			}
 
 		}
@@ -84,7 +97,7 @@ func handleAndExpr(expr *sqlparser.AndExpr) []QueryParam {
 }
 
 func handleRandExpr(expr *sqlparser.RangeCond) []QueryParam {
-	keypath := stripQuotes(sqlparser.String(expr.Left))
+	keypath := repairString(stripQuotes(sqlparser.String(expr.Left)))
 	fromQuery := assignTypeToParam(QueryParam{
 		KeyPath:  keypath,
 		Operator: ">=",
@@ -145,6 +158,11 @@ func New(queryString string) *QueryParams {
 
 	// Fixes "date" breaking the parser by wrapping it in quotes
 	queryString = strings.Replace(queryString, " date", " 'date'", -1)
+	// Replace characters that the SQL parser won't accept
+	for _, entry := range stringReplacements {
+		queryString = strings.Replace(queryString, entry[0], entry[1], -1)
+	}
+
 	tree, err := sqlparser.Parse(queryString)
 	if err != nil {
 		logger.Logger.Error(err.Error())
@@ -162,12 +180,12 @@ func New(queryString string) *QueryParams {
 			// Simple selects
 			case *sqlparser.ColName:
 				queryParams.Selects = append(queryParams.Selects, QueryParam{
-					KeyPath:  sqlparser.String(exp),
+					KeyPath:  repairString(sqlparser.String(exp)),
 					Operator: "exists",
 				})
 			// DISTINCT()
 			case *sqlparser.ParenExpr:
-				keyPath := sqlparser.String(exp.Expr.(*sqlparser.ColName))
+				keyPath := repairString(sqlparser.String(exp.Expr.(*sqlparser.ColName)))
 				queryParams.Selects = append(queryParams.Selects, QueryParam{
 					KeyPath:  keyPath,
 					Operator: "exists",
@@ -182,16 +200,16 @@ func New(queryString string) *QueryParams {
 			case *sqlparser.FuncExpr:
 				switch aggrPath := exp.Exprs[0].(*sqlparser.NonStarExpr).Expr.(type) {
 				case sqlparser.ValTuple:
-					queryParams.AggrPath = sqlparser.String(aggrPath[0].(*sqlparser.ColName))
+					queryParams.AggrPath = repairString(sqlparser.String(aggrPath[0].(*sqlparser.ColName)))
 				case *sqlparser.ColName:
-					queryParams.AggrPath = sqlparser.String(aggrPath)
+					queryParams.AggrPath = repairString(sqlparser.String(aggrPath))
 				case *sqlparser.ParenExpr:
 					// Fixes COUNT(DISTINCT())
 					switch aggrPath := aggrPath.Expr.(type) {
 					case sqlparser.ValTuple:
-						queryParams.AggrPath = sqlparser.String(aggrPath[0].(*sqlparser.ColName))
+						queryParams.AggrPath = repairString(sqlparser.String(aggrPath[0].(*sqlparser.ColName)))
 					case *sqlparser.ColName:
-						queryParams.AggrPath = sqlparser.String(aggrPath)
+						queryParams.AggrPath = repairString(sqlparser.String(aggrPath))
 					}
 				}
 
@@ -213,7 +231,7 @@ func New(queryString string) *QueryParams {
 
 	// Froms
 	for _, entry := range queryTree.From {
-		queryParams.From = append(queryParams.From, sqlparser.String(entry))
+		queryParams.From = append(queryParams.From, repairString(sqlparser.String(entry)))
 	}
 
 	if queryTree.Where != nil {
