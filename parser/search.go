@@ -28,7 +28,7 @@ func searchParse(query *sqlquery.QueryParams, logStruct *LogQueryStruct, coreLim
 	defer file.Close()
 
 	lineNumber := -1
-	lastLineNumber := 0
+	lastLineNumber := -1
 	scanner := createScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
