@@ -21,9 +21,9 @@ func distinctCountParse(query *sqlquery.QueryParams, resultsChan chan<- map[stri
 
 	scanner := createScanner(file)
 	for scanner.Scan() {
-		line := scanner.Text()
-		if query.ProcessLine(line) {
-			res := gjson.Get(line, query.AggrPath)
+		line := scanner.Bytes()
+		if query.ProcessLine(&line) {
+			res := gjson.GetBytes(line, query.AggrPath)
 			if res.Type != 0 {
 				value := res.String()
 				if _, ok := results[value]; ok {

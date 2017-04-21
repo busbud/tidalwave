@@ -44,7 +44,9 @@ type SocketsManager struct {
 func (sm *SocketsManager) watchLines() {
 	for line := range sm.NewLinesChannel {
 		for _, lt := range sm.LiveTails {
-			if (dry.StringInSlice(line.appName, lt.Query.From) || dry.StringInSlice("*", lt.Query.From)) && lt.Query.ProcessLine(line.entry) {
+			// TODO: This is not optimal
+			bline := []byte(line.entry)
+			if (dry.StringInSlice(line.appName, lt.Query.From) || dry.StringInSlice("*", lt.Query.From)) && lt.Query.ProcessLine(&bline) {
 				// TODO Verify this is a good idea to run in a goroutine.
 				go lt.Ws.WriteMessage(2, []byte(`{"type": "log", "data": `+line.entry+`}`))
 			}

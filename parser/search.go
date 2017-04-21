@@ -30,10 +30,10 @@ func searchParse(query *sqlquery.QueryParams, logStruct *LogQueryStruct, coreLim
 	lastLineNumber := -1
 	scanner := createScanner(file)
 	for scanner.Scan() {
-		line := scanner.Text()
+		line := scanner.Bytes()
 		lineNumber++
 
-		if query.ProcessLine(line) {
+		if query.ProcessLine(&line) {
 			if lineNumber == (lastLineNumber+1) && lineNumber != 0 {
 				logStruct.LineNumbers[len(logStruct.LineNumbers)-1][1] = lineNumber
 			} else {

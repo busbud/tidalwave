@@ -20,8 +20,8 @@ func countParse(query *sqlquery.QueryParams, resultsChan chan<- int, logPath str
 
 	scanner := createScanner(file)
 	for scanner.Scan() {
-		line := scanner.Text()
-		if query.ProcessLine(line) {
+		line := scanner.Bytes()
+		if query.ProcessLine(&line) {
 			count++
 		}
 	}
