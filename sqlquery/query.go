@@ -1,12 +1,14 @@
 package sqlquery
 
 import (
+	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/dustinblackman/tidalwave/logger"
 	"github.com/tidwall/gjson"
+	dry "github.com/ungerik/go-dry"
 	sqlparser "github.com/youtube/vitess/go/vt/sqlparser"
 )
 
@@ -21,6 +23,10 @@ const (
 	TypeSearch = "search"
 )
 
+// List of operators that use the Regex field in QueryParam
+var regexOperators = []string{"like", "ilike", "regexp"}
+
+// A list of strings replaced in a query string before being passed to the parser to avoid parsing errors.
 var stringReplacements = [][]string{
 	{"-", "__DASH__"},
 }
@@ -28,6 +34,7 @@ var stringReplacements = [][]string{
 // QueryParam holds a single piece of a queries WHERE and SELECT statements to be processed on log lines
 type QueryParam struct {
 	KeyPath        string
+	Regex          *regexp.Regexp
 	Operator       string
 	ValInt         int
 	ValIntArray    []int
@@ -55,11 +62,31 @@ func repairString(key string) string {
 	return key
 }
 
-func assignTypeToParam(param QueryParam, value string) QueryParam {
+func assignTypeFieldsToParam(param QueryParam, value string) QueryParam {
 	if i, err := strconv.Atoi(value); err == nil {
 		param.ValInt = i
 	} else {
 		param.ValString = repairString(stripQuotes(value))
+
+		// Handles building the Regex field on param when a string is selected
+		if dry.StringListContains(regexOperators, param.Operator) {
+			regexString := ""
+			if param.ValString[:1] == "%" && param.ValString[len(param.ValString)-1:] != "%" {
+				regexString = "^" + param.ValString[1:]
+			} else if param.ValString[:1] != "%" && param.ValString[len(param.ValString)-1:] == "%" {
+				regexString = param.ValString[:len(param.ValString)-1] + "$"
+			} else if param.ValString[:1] == "%" && param.ValString[len(param.ValString)-1:] == "%" {
+				regexString = param.ValString[1 : len(param.ValString)-1]
+			} else {
+				regexString = param.ValString
+			}
+
+			if param.Operator == "regexp" {
+				param.Operator = "ilike" // TODO: Temp workaround
+				regexString = "(?i)" + regexString
+			}
+			param.Regex = regexp.MustCompile(regexString)
+		}
 	}
 	return param
 }
@@ -81,7 +108,7 @@ func handleCompareExpr(expr *sqlparser.ComparisonExpr) QueryParam {
 
 		}
 	} else {
-		param = assignTypeToParam(param, right)
+		param = assignTypeFieldsToParam(param, right)
 	}
 
 	return param
@@ -98,11 +125,11 @@ func handleAndExpr(expr *sqlparser.AndExpr) []QueryParam {
 
 func handleRandExpr(expr *sqlparser.RangeCond) []QueryParam {
 	keypath := repairString(stripQuotes(sqlparser.String(expr.Left)))
-	fromQuery := assignTypeToParam(QueryParam{
+	fromQuery := assignTypeFieldsToParam(QueryParam{
 		KeyPath:  keypath,
 		Operator: ">=",
 	}, sqlparser.String(expr.From))
-	toQuery := assignTypeToParam(QueryParam{
+	toQuery := assignTypeFieldsToParam(QueryParam{
 		KeyPath:  keypath,
 		Operator: "<=",
 	}, sqlparser.String(expr.To))
@@ -158,7 +185,12 @@ func New(queryString string) *QueryParams {
 
 	// Fixes "date" breaking the parser by wrapping it in quotes
 	queryString = strings.Replace(queryString, " date", " 'date'", -1)
-	// Replace characters that the SQL parser won't accept
+	// Adds support for ~~.
+	queryString = strings.Replace(queryString, " ~~ ", " like ", -1)
+	// TODO This is a temporary workaround to have "ilike" support.
+	// The sqlparser doesn't accept ilike, so we use rlike instead until a better solution comes around.
+	queryString = strings.Replace(queryString, " ilike ", " rlike ", -1)
+	// Replace characters that the SQL parser won't accept that will be reverted back after parsing
 	for _, entry := range stringReplacements {
 		queryString = strings.Replace(queryString, entry[0], entry[1], -1)
 	}

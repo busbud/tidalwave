@@ -68,6 +68,8 @@ func ProcessString(q *QueryParam, res string) bool {
 			}
 		}
 		return false
+	case "like", "ilike":
+		return q.Regex.MatchString(res)
 	case "=", "==":
 		if res == q.ValString {
 			return true
