@@ -33,6 +33,7 @@ var stringReplacements = [][]string{
 
 // QueryParam holds a single piece of a queries WHERE and SELECT statements to be processed on log lines
 type QueryParam struct {
+	IsInt          bool
 	KeyPath        string
 	Regex          *regexp.Regexp
 	Operator       string
@@ -64,6 +65,7 @@ func repairString(key string) string {
 
 func assignTypeFieldsToParam(param QueryParam, value string) QueryParam {
 	if i, err := strconv.Atoi(value); err == nil {
+		param.IsInt = true
 		param.ValInt = i
 	} else {
 		param.ValString = repairString(stripQuotes(value))
@@ -99,13 +101,24 @@ func handleCompareExpr(expr *sqlparser.ComparisonExpr) QueryParam {
 
 	right := sqlparser.String(expr.Right)
 	if expr.Operator == "in" {
-		for _, val := range strings.Split(right[1:len(right)-1], ", ") {
+		arrayValues := strings.Split(right[1:len(right)-1], ", ")
+		for _, val := range arrayValues {
 			if i, err := strconv.Atoi(val); err == nil {
+				param.IsInt = true
 				param.ValIntArray = append(param.ValIntArray, i)
 			} else {
 				param.ValStringArray = append(param.ValStringArray, repairString(stripQuotes(val)))
 			}
+		}
 
+		// We can't have mixed types wheh comparing arrays. We default to strings if not all values were convertable to
+		// numbers
+		if len(param.ValIntArray) > 0 && len(param.ValStringArray) != 0 {
+			param.IsInt = false
+			for _, val := range param.ValIntArray {
+				param.ValStringArray = append(param.ValStringArray, string(val))
+			}
+			param.ValIntArray = []int{}
 		}
 	} else {
 		param = assignTypeFieldsToParam(param, right)
@@ -160,7 +173,7 @@ func (qp *QueryParams) ProcessLine(line string) bool {
 			break
 		}
 
-		if value.Type == gjson.Number { // TODO: Check if ValInt exists first.
+		if q.IsInt && value.Type == gjson.Number {
 			if ProcessInt(&q, int(value.Num)) {
 				matchMap = append(matchMap, true)
 			} else {
