@@ -216,7 +216,7 @@ func New(queryString string) *QueryParams {
 
 	// Selects
 	// Makes sure the selected keys we want exists in the line.
-	logger.Logger.Debug(spew.Sdump(queryTree))
+	logger.Logger.Debugf("Query Tree: %s", spew.Sdump(queryTree))
 	for _, entry := range queryTree.SelectExprs {
 		// TODO: Support star expression
 		switch entry := entry.(type) {
@@ -290,6 +290,6 @@ func New(queryString string) *QueryParams {
 	}
 
 	queryParams.Queries = append(queryParams.Selects, queryParams.Queries...)
-	logger.Logger.Debug(spew.Sdump(queryParams))
+	logger.Logger.Debugf("Query Params: %s", spew.Sdump(queryParams))
 	return &queryParams
 }
