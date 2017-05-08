@@ -29,6 +29,7 @@ var regexOperators = []string{"like", "ilike", "regexp"}
 // A list of strings replaced in a query string before being passed to the parser to avoid parsing errors.
 var stringReplacements = [][]string{
 	{"-", "__DASH__"},
+	{".", "__DOT__"},
 }
 
 // QueryParam holds a single piece of a queries WHERE and SELECT statements to be processed on log lines
