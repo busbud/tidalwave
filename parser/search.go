@@ -80,7 +80,7 @@ func searchSubmit(query *sqlquery.QueryParams, logStruct *LogQueryStruct, submit
 			selectedEntries := []string{}
 			for _, entry := range query.Selects {
 				res := gjson.Get(line, entry.KeyPath)
-				if res.Type == gjson.Number {
+				if res.Type == gjson.Number || res.Type == gjson.JSON {
 					selectedEntries = append(selectedEntries, `"`+entry.KeyPath+`":`+res.String())
 				} else if res.Type == gjson.True {
 					selectedEntries = append(selectedEntries, `"`+entry.KeyPath+`":true`)

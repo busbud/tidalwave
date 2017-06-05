@@ -174,7 +174,9 @@ func (qp *QueryParams) ProcessLine(line *[]byte) bool {
 			break
 		}
 
-		if q.IsInt && value.Type == gjson.Number {
+		if value.Type == gjson.JSON && q.Operator == "exists" {
+			matchMap = append(matchMap, true)
+		} else if q.IsInt && value.Type == gjson.Number {
 			if ProcessInt(&q, int(value.Num)) {
 				matchMap = append(matchMap, true)
 			} else {
