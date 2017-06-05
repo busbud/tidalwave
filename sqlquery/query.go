@@ -174,16 +174,14 @@ func (qp *QueryParams) ProcessLine(line *[]byte) bool {
 			break
 		}
 
-		if value.Type == gjson.JSON && q.Operator == "exists" {
-			matchMap = append(matchMap, true)
-		} else if q.IsInt && value.Type == gjson.Number {
+		if q.IsInt && value.Type == gjson.Number {
 			if ProcessInt(&q, int(value.Num)) {
 				matchMap = append(matchMap, true)
 			} else {
 				break
 			}
 		} else {
-			if ProcessString(&q, value.Str) {
+			if ProcessString(&q, value.String()) {
 				matchMap = append(matchMap, true)
 			} else {
 				break
