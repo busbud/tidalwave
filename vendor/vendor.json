@@ -405,6 +405,13 @@
 			"revisionTime": "2016-10-23T20:04:48Z"
 		},
 		{
+			"checksumSHA1": "uJG+85G18GNh20xqytFB9nhV3Gk=",
+			"path": "github.com/lfittl/pg_query_go",
+			"revision": "1779d157416dad8c2a0ad84e855ee54fda742638",
+			"revisionTime": "2016-12-06T12:51:40Z",
+			"tree": true
+		},
+		{
 			"checksumSHA1": "S6PDDQMYaKwLDIP/NsRYb4FRAqQ=",
 			"path": "github.com/magiconair/properties",
 			"revision": "0723e352fa358f9322c938cc2dadda874e9151a9",
@@ -537,10 +544,10 @@
 			"revisionTime": "2017-04-10T09:26:50Z"
 		},
 		{
-			"checksumSHA1": "siaLroSOpDUgL/fRHkg4y91SQR0=",
+			"checksumSHA1": "mq6AQOilxW1tKj2bVsuqCDlcCSo=",
 			"path": "github.com/tidwall/gjson",
-			"revision": "20d521de6e3d5da7062d048ccb8d3ccbe98f85db",
-			"revisionTime": "2017-04-10T02:40:55Z"
+			"revision": "c784c417818f59d6597274642d8ac1d09efc9b01",
+			"revisionTime": "2017-05-26T02:39:18Z"
 		},
 		{
 			"checksumSHA1": "qmePMXEDYGwkAfT9QvtMC58JN/E=",
@@ -601,78 +608,6 @@
 			"path": "github.com/xwb1989/sqlparser/dependency/sqltypes",
 			"revision": "dbfc8580724c42e86a20e9586b75a65b806cd88b",
 			"revisionTime": "2016-03-28T03:03:26Z"
-		},
-		{
-			"checksumSHA1": "HDwcgin7VNGytBICiVH0J+drGJk=",
-			"path": "github.com/youtube/vitess/go/event",
-			"revision": "f6672e856630a1451d2d4399375ce4a373913df8",
-			"revisionTime": "2017-04-07T12:13:53Z"
-		},
-		{
-			"checksumSHA1": "doZ+nIyhV0mMq8hG6nmcBTAuFl4=",
-			"path": "github.com/youtube/vitess/go/hack",
-			"revision": "f6672e856630a1451d2d4399375ce4a373913df8",
-			"revisionTime": "2017-04-07T12:13:53Z"
-		},
-		{
-			"checksumSHA1": "Jo6CphYCVUs11jNUfaHKJx3ZLmw=",
-			"path": "github.com/youtube/vitess/go/sqltypes",
-			"revision": "f6672e856630a1451d2d4399375ce4a373913df8",
-			"revisionTime": "2017-04-07T12:13:53Z"
-		},
-		{
-			"checksumSHA1": "N8DZr1T0pM9wb9DrH1bD+dUt7kw=",
-			"path": "github.com/youtube/vitess/go/tb",
-			"revision": "f6672e856630a1451d2d4399375ce4a373913df8",
-			"revisionTime": "2017-04-07T12:13:53Z"
-		},
-		{
-			"checksumSHA1": "Ks9cG0zpGCFyPrQDh7EUsQCLy3o=",
-			"path": "github.com/youtube/vitess/go/vt/logutil",
-			"revision": "f6672e856630a1451d2d4399375ce4a373913df8",
-			"revisionTime": "2017-04-07T12:13:53Z"
-		},
-		{
-			"checksumSHA1": "IowBttBVp5fO9AaCUk+N5WVYIfY=",
-			"path": "github.com/youtube/vitess/go/vt/proto/logutil",
-			"revision": "f6672e856630a1451d2d4399375ce4a373913df8",
-			"revisionTime": "2017-04-07T12:13:53Z"
-		},
-		{
-			"checksumSHA1": "s4a2OhrH49w1zO3A6KAokYIBsEQ=",
-			"path": "github.com/youtube/vitess/go/vt/proto/query",
-			"revision": "f6672e856630a1451d2d4399375ce4a373913df8",
-			"revisionTime": "2017-04-07T12:13:53Z"
-		},
-		{
-			"checksumSHA1": "VXOT7N2xQPGKukRrQR8FluMZbgY=",
-			"path": "github.com/youtube/vitess/go/vt/proto/topodata",
-			"revision": "f6672e856630a1451d2d4399375ce4a373913df8",
-			"revisionTime": "2017-04-07T12:13:53Z"
-		},
-		{
-			"checksumSHA1": "6ouWF3PPfN6nll804HvrEsINnoA=",
-			"path": "github.com/youtube/vitess/go/vt/proto/vtrpc",
-			"revision": "f6672e856630a1451d2d4399375ce4a373913df8",
-			"revisionTime": "2017-04-07T12:13:53Z"
-		},
-		{
-			"checksumSHA1": "zOI7dD7bfkxdetJKETP3J4b6a5Y=",
-			"path": "github.com/youtube/vitess/go/vt/sqlparser",
-			"revision": "f6672e856630a1451d2d4399375ce4a373913df8",
-			"revisionTime": "2017-04-07T12:13:53Z"
-		},
-		{
-			"checksumSHA1": "O7Y0b2AQI68hTJxPtSM+A8esVg0=",
-			"path": "github.com/youtube/vitess/go/vt/utils",
-			"revision": "f6672e856630a1451d2d4399375ce4a373913df8",
-			"revisionTime": "2017-04-07T12:13:53Z"
-		},
-		{
-			"checksumSHA1": "v/T7gNe7REQkiPQLx4J0dMpogWs=",
-			"path": "github.com/youtube/vitess/go/vt/vterrors",
-			"revision": "f6672e856630a1451d2d4399375ce4a373913df8",
-			"revisionTime": "2017-04-07T12:13:53Z"
 		},
 		{
 			"checksumSHA1": "6NS7FWJl1FobB+Xfe4SzBGD+75g=",

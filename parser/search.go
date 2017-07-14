@@ -61,7 +61,7 @@ func searchSubmit(query *sqlquery.QueryParams, logStruct *LogQueryStruct, submit
 	lineNumber := -1
 	// TODO: Handle scanner errors
 	for scanner.Scan() {
-		line := scanner.Text()
+		line := scanner.Bytes()
 		lineNumber++
 		acceptLine := false
 		// TODO: Can this be better? Faster?
@@ -78,25 +78,25 @@ func searchSubmit(query *sqlquery.QueryParams, logStruct *LogQueryStruct, submit
 		// If there were select statements, join those in to a smaller JSON object.
 		if len(query.Selects) > 0 {
 			selectedEntries := []string{}
-			for _, entry := range query.Selects {
-				res := gjson.Get(line, entry.KeyPath)
+			for idx, res := range gjson.GetManyBytes(line, query.Selects...) {
+				keyPath := query.Selects[idx]
 				if res.Type == gjson.Number || res.Type == gjson.JSON {
-					selectedEntries = append(selectedEntries, `"`+entry.KeyPath+`":`+res.String())
+					selectedEntries = append(selectedEntries, `"`+keyPath+`":`+res.String())
 				} else if res.Type == gjson.True {
-					selectedEntries = append(selectedEntries, `"`+entry.KeyPath+`":true`)
+					selectedEntries = append(selectedEntries, `"`+keyPath+`":true`)
 				} else if res.Type == gjson.False {
-					selectedEntries = append(selectedEntries, `"`+entry.KeyPath+`":false`)
+					selectedEntries = append(selectedEntries, `"`+keyPath+`":false`)
 				} else if res.Type == gjson.Null {
-					selectedEntries = append(selectedEntries, `"`+entry.KeyPath+`":null`)
+					selectedEntries = append(selectedEntries, `"`+keyPath+`":null`)
 				} else {
-					selectedEntries = append(selectedEntries, `"`+entry.KeyPath+`":"`+res.String()+`"`)
+					selectedEntries = append(selectedEntries, `"`+keyPath+`":"`+res.String()+`"`)
 				}
 			}
 
 			submitChannel <- "{" + strings.Join(selectedEntries, ",") + "}"
 		} else {
 			// Return entire log line.
-			submitChannel <- line
+			submitChannel <- string(line)
 		}
 	}
 }

@@ -7,9 +7,10 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/dustinblackman/tidalwave/logger"
+	pgQuery "github.com/lfittl/pg_query_go"
+	pgNodes "github.com/lfittl/pg_query_go/nodes"
 	"github.com/tidwall/gjson"
 	dry "github.com/ungerik/go-dry"
-	sqlparser "github.com/youtube/vitess/go/vt/sqlparser"
 )
 
 const (
@@ -24,12 +25,14 @@ const (
 )
 
 // List of operators that use the Regex field in QueryParam
-var regexOperators = []string{"like", "ilike", "regexp"}
+var regexOperators = []string{"regexp", "~~", "~~*"}
+
+// List of supported postgres functions
+var supportedFunctions = []string{"count", "distinct"}
 
 // A list of strings replaced in a query string before being passed to the parser to avoid parsing errors.
 var stringReplacements = [][]string{
 	{"-", "__DASH__"},
-	{".", "__DOT__"},
 }
 
 // QueryParam holds a single piece of a queries WHERE and SELECT statements to be processed on log lines
@@ -46,30 +49,60 @@ type QueryParam struct {
 
 // QueryParams holds all the information for a given query such SELECT, FROM, and WHERE statements to be easily processed later.
 type QueryParams struct {
+	SQLString      string
+	SQLStringLower string
+
 	From []string // TODO: Rename to Froms
 
-	AggrPath string
-	Dates    []DateParam
-	Queries  []QueryParam // TODO Rename to Where
-	Selects  []QueryParam
-	Type     string
+	AggrPath  string
+	Dates     []DateParam
+	Queries   []QueryParam // TODO Rename to Where
+	QueryKeys []string
+	Selects   []string
+	Type      string
 }
 
-// Youtube's SQL parser doesn't like some characters in parts of the query.
+func convertAConst(expr pgNodes.A_Const) string {
+	switch val := expr.Val.(type) {
+	case pgNodes.String:
+		return val.Str
+	case pgNodes.Integer:
+		return strconv.Itoa(int(val.Ival))
+	}
+
+	return "" // TODO
+}
+
+// Postgres' SQL parser doesn't like some characters in parts of the query.
 // We replace them in New, and them restore them here after parsing the sql parsers response.
-func repairString(key string) string {
+func (qp *QueryParams) repairString(key string) string {
 	for _, entry := range stringReplacements {
 		key = strings.Replace(key, entry[1], entry[0], -1)
 	}
-	return key
+
+	// Postgres' parser makes the entire string lower case before parsing it. This restores the casing.
+	idx := strings.Index(qp.SQLStringLower, strings.ToLower(key))
+	return qp.SQLString[idx : idx+len(key)]
 }
 
-func assignTypeFieldsToParam(param QueryParam, value string) QueryParam {
+func (qp *QueryParams) getSelectNodeString(selectNodeVal pgNodes.ColumnRef) string {
+	selectStrings := []string{}
+	for _, item := range selectNodeVal.Fields.Items {
+		switch item := item.(type) {
+		case pgNodes.String:
+			selectStrings = append(selectStrings, item.Str)
+		}
+	}
+
+	return qp.repairString(strings.Join(selectStrings, "."))
+}
+
+func (qp *QueryParams) assignTypeFieldsToParam(param QueryParam, value string) QueryParam {
 	if i, err := strconv.Atoi(value); err == nil {
 		param.IsInt = true
 		param.ValInt = i
 	} else {
-		param.ValString = repairString(stripQuotes(value))
+		param.ValString = qp.repairString(stripQuotes(value))
 
 		// Handles building the Regex field on param when a string is selected
 		if dry.StringListContains(regexOperators, param.Operator) {
@@ -84,8 +117,7 @@ func assignTypeFieldsToParam(param QueryParam, value string) QueryParam {
 				regexString = param.ValString
 			}
 
-			if param.Operator == "regexp" {
-				param.Operator = "ilike" // TODO: Temp workaround
+			if param.Operator == "~~*" {
 				regexString = "(?i)" + regexString
 			}
 			param.Regex = regexp.MustCompile(regexString)
@@ -94,21 +126,38 @@ func assignTypeFieldsToParam(param QueryParam, value string) QueryParam {
 	return param
 }
 
-func handleCompareExpr(expr *sqlparser.ComparisonExpr) QueryParam {
+func (qp *QueryParams) handleCompareExpr(expr pgNodes.A_Expr) []QueryParam {
+	// Param root used for everything except BETWEEN.
 	param := QueryParam{
-		KeyPath:  repairString(stripQuotes(sqlparser.String(expr.Left))),
-		Operator: expr.Operator,
+		KeyPath:  qp.getSelectNodeString(expr.Lexpr.(pgNodes.ColumnRef)),
+		Operator: expr.Name.Items[0].(pgNodes.String).Str,
 	}
 
-	right := sqlparser.String(expr.Right)
-	if expr.Operator == "in" {
-		arrayValues := strings.Split(right[1:len(right)-1], ", ")
-		for _, val := range arrayValues {
+	switch right := expr.Rexpr.(type) {
+	case pgNodes.A_Const:
+		param = qp.assignTypeFieldsToParam(param, convertAConst(right))
+
+	case pgNodes.List:
+		if param.Operator == "BETWEEN" {
+			fromQuery := qp.assignTypeFieldsToParam(QueryParam{
+				KeyPath:  param.KeyPath,
+				Operator: ">=",
+			}, convertAConst(right.Items[0].(pgNodes.A_Const)))
+			toQuery := qp.assignTypeFieldsToParam(QueryParam{
+				KeyPath:  param.KeyPath,
+				Operator: "<=",
+			}, convertAConst(right.Items[1].(pgNodes.A_Const)))
+
+			return []QueryParam{fromQuery, toQuery}
+		}
+
+		for _, val := range right.Items {
+			val := convertAConst(val.(pgNodes.A_Const))
 			if i, err := strconv.Atoi(val); err == nil {
 				param.IsInt = true
 				param.ValIntArray = append(param.ValIntArray, i)
 			} else {
-				param.ValStringArray = append(param.ValStringArray, repairString(stripQuotes(val)))
+				param.ValStringArray = append(param.ValStringArray, qp.repairString(stripQuotes(val)))
 			}
 		}
 
@@ -121,45 +170,27 @@ func handleCompareExpr(expr *sqlparser.ComparisonExpr) QueryParam {
 			}
 			param.ValIntArray = []int{}
 		}
-	} else {
-		param = assignTypeFieldsToParam(param, right)
 	}
 
-	return param
+	return []QueryParam{param}
 }
 
-func handleAndExpr(expr *sqlparser.AndExpr) []QueryParam {
+func (qp *QueryParams) handleAndExpr(expr pgNodes.BoolExpr) []QueryParam {
 	params := []QueryParam{}
-
-	for _, side := range []interface{}{expr.Left, expr.Right} {
-		params = append(params, handleExpr(side)...)
+	for _, whereExpr := range expr.Args.Items {
+		params = append(params, qp.handleExpr(whereExpr)...)
 	}
+
 	return params
 }
 
-func handleRandExpr(expr *sqlparser.RangeCond) []QueryParam {
-	keypath := repairString(stripQuotes(sqlparser.String(expr.Left)))
-	fromQuery := assignTypeFieldsToParam(QueryParam{
-		KeyPath:  keypath,
-		Operator: ">=",
-	}, sqlparser.String(expr.From))
-	toQuery := assignTypeFieldsToParam(QueryParam{
-		KeyPath:  keypath,
-		Operator: "<=",
-	}, sqlparser.String(expr.To))
-
-	return []QueryParam{fromQuery, toQuery}
-}
-
-func handleExpr(entry interface{}) []QueryParam {
+func (qp *QueryParams) handleExpr(entry interface{}) []QueryParam {
 	params := []QueryParam{}
 	switch expr := entry.(type) {
-	case *sqlparser.AndExpr:
-		params = append(params, handleAndExpr(expr)...)
-	case *sqlparser.ComparisonExpr:
-		params = append(params, handleCompareExpr(expr))
-	case *sqlparser.RangeCond:
-		params = append(params, handleRandExpr(expr)...)
+	case pgNodes.A_Expr:
+		params = append(params, qp.handleCompareExpr(expr)...)
+	case pgNodes.BoolExpr:
+		params = append(params, qp.handleAndExpr(expr)...)
 	}
 
 	return params
@@ -168,20 +199,22 @@ func handleExpr(entry interface{}) []QueryParam {
 // ProcessLine interates through all Queries created during the query parsing returning a bool stating whether all matched.
 func (qp *QueryParams) ProcessLine(line *[]byte) bool {
 	matchMap := []bool{}
-	for _, q := range qp.Queries {
-		value := gjson.GetBytes(*line, q.KeyPath)
+	// TODO Change all of this to use gjson.GetManyBytes
+
+	for idx, value := range gjson.GetManyBytes(*line, qp.QueryKeys...) {
 		if value.Type == 0 { // gjson way of saying key not found
 			break
 		}
 
+		q := &qp.Queries[idx]
 		if q.IsInt && value.Type == gjson.Number {
-			if ProcessInt(&q, int(value.Num)) {
+			if ProcessInt(q, int(value.Num)) {
 				matchMap = append(matchMap, true)
 			} else {
 				break
 			}
 		} else {
-			if ProcessString(&q, value.String()) {
+			if ProcessString(q, value.String()) {
 				matchMap = append(matchMap, true)
 			} else {
 				break
@@ -195,102 +228,91 @@ func (qp *QueryParams) ProcessLine(line *[]byte) bool {
 // New parses a query string and returns a newly created QueryParams struc holding all parsed data.
 func New(queryString string) *QueryParams {
 	logger.Logger.Debug("Query: " + queryString)
-	queryParams := QueryParams{Type: TypeSearch} // Default is search. TODO Move to if statement
+	qp := QueryParams{
+		SQLString:      queryString,
+		SQLStringLower: strings.ToLower(queryString),
+		Type:           TypeSearch, // Default is search. TODO Move to if statement
+	}
 
-	// Fixes "date" breaking the parser by wrapping it in quotes
-	queryString = strings.Replace(queryString, " date", " 'date'", -1)
-	// Adds support for ~~.
-	queryString = strings.Replace(queryString, " ~~ ", " like ", -1)
-	// TODO This is a temporary workaround to have "ilike" support.
-	// The sqlparser doesn't accept ilike, so we use rlike instead until a better solution comes around.
-	queryString = strings.Replace(queryString, " ilike ", " rlike ", -1)
 	// Replace characters that the SQL parser won't accept that will be reverted back after parsing
 	for _, entry := range stringReplacements {
 		queryString = strings.Replace(queryString, entry[0], entry[1], -1)
 	}
 
-	tree, err := sqlparser.Parse(queryString)
+	tree, err := pgQuery.Parse(queryString)
 	if err != nil {
 		logger.Logger.Error(err.Error())
 	}
-	queryTree := tree.(*sqlparser.Select)
 
-	// Selects
-	// Makes sure the selected keys we want exists in the line.
-	logger.Logger.Debugf("Query Tree: %s", spew.Sdump(queryTree))
-	for _, entry := range queryTree.SelectExprs {
-		// TODO: Support star expression
-		switch entry := entry.(type) {
-		case *sqlparser.NonStarExpr:
-			switch exp := entry.Expr.(type) {
-			// Simple selects
-			case *sqlparser.ColName:
-				queryParams.Selects = append(queryParams.Selects, QueryParam{
-					KeyPath:  repairString(sqlparser.String(exp)),
+	logger.Logger.Debugf("Query Tree: %s", spew.Sdump(tree))
+	statement := tree.Statements[0].(pgNodes.SelectStmt)
+	isDistrinct := len(statement.DistinctClause.Items) > 0
+
+	// Select statements
+	for _, selectNode := range statement.TargetList.Items {
+		selectNode := selectNode.(pgNodes.ResTarget)
+		selectString := ""
+		switch selectNodeVal := selectNode.Val.(type) {
+		case pgNodes.ColumnRef: // Regular select statement
+			selectString = qp.getSelectNodeString(selectNodeVal)
+			if len(selectString) > 0 {
+				qp.Selects = append(qp.Selects, selectString)
+				qp.Queries = append(qp.Queries, QueryParam{
+					KeyPath:  selectString,
 					Operator: "exists",
 				})
-			// DISTINCT()
-			case *sqlparser.ParenExpr:
-				keyPath := repairString(sqlparser.String(exp.Expr.(*sqlparser.ColName)))
-				queryParams.Selects = append(queryParams.Selects, QueryParam{
-					KeyPath:  keyPath,
-					Operator: "exists",
-				})
-
-				// Where distinct is set
-				if len(queryTree.Distinct) >= 8 {
-					queryParams.Type = TypeDistinct
-					queryParams.AggrPath = keyPath
-				}
-			// All other function expressions. COUNT(), COUNT(DISTINCT())
-			case *sqlparser.FuncExpr:
-				switch aggrPath := exp.Exprs[0].(*sqlparser.NonStarExpr).Expr.(type) {
-				case sqlparser.ValTuple:
-					queryParams.AggrPath = repairString(sqlparser.String(aggrPath[0].(*sqlparser.ColName)))
-				case *sqlparser.ColName:
-					queryParams.AggrPath = repairString(sqlparser.String(aggrPath))
-				case *sqlparser.ParenExpr:
-					// Fixes COUNT(DISTINCT())
-					switch aggrPath := aggrPath.Expr.(type) {
-					case sqlparser.ValTuple:
-						queryParams.AggrPath = repairString(sqlparser.String(aggrPath[0].(*sqlparser.ColName)))
-					case *sqlparser.ColName:
-						queryParams.AggrPath = repairString(sqlparser.String(aggrPath))
-					}
-				}
-
-				queryParams.Selects = append(queryParams.Selects, QueryParam{
-					KeyPath:  queryParams.AggrPath,
-					Operator: "exists",
-				})
-
-				// TODO This will need to get a bit more advance when we start adding other functions.
-				name := sqlparser.String(exp.Name)
-				if name == "count" && exp.Distinct {
-					queryParams.Type = TypeCountDistinct
-				} else {
-					queryParams.Type = TypeCount
-				}
 			}
-		}
-	}
 
-	// Froms
-	for _, entry := range queryTree.From {
-		queryParams.From = append(queryParams.From, repairString(sqlparser.String(entry)))
-	}
+		case pgNodes.FuncCall: // COUNT
+			if len(selectNodeVal.Args.Items) > 0 {
+				qp.AggrPath = qp.getSelectNodeString(selectNodeVal.Args.Items[0].(pgNodes.ColumnRef))
+				qp.Selects = append(qp.Selects, qp.AggrPath)
+				qp.Queries = append(qp.Queries, QueryParam{
+					KeyPath:  qp.AggrPath,
+					Operator: "exists",
+				})
+			}
 
-	if queryTree.Where != nil {
-		for _, entry := range handleExpr(queryTree.Where.Expr) {
-			if entry.KeyPath == "date" {
-				queryParams.Dates = append(queryParams.Dates, createDateParam(entry.ValString, entry.Operator))
+			funcType := selectNodeVal.Funcname.Items[0].(pgNodes.String).Str
+			if !dry.StringListContains(supportedFunctions, funcType) {
+				logger.Logger.Panicf("%s is not a supported function", funcType)
+			}
+
+			// Default to just support count and distinct for now. Redo this later.
+			if selectNodeVal.AggDistinct {
+				qp.Type = TypeCountDistinct
 			} else {
-				queryParams.Queries = append(queryParams.Queries, entry)
+				qp.Type = TypeCount
+			}
+		}
+
+		if isDistrinct && qp.Type != TypeCountDistinct {
+			qp.AggrPath = selectString
+			qp.Type = TypeDistinct
+		}
+	}
+
+	// From clauses
+	for _, fromNode := range statement.FromClause.Items {
+		qp.From = append(qp.From, qp.repairString(*fromNode.(pgNodes.RangeVar).Relname))
+	}
+
+	// Where clauses
+	if statement.WhereClause != nil {
+		for _, entry := range qp.handleExpr(statement.WhereClause) {
+			if entry.KeyPath == "date" {
+				qp.Dates = append(qp.Dates, createDateParam(entry.ValString, entry.Operator))
+			} else {
+				qp.Queries = append(qp.Queries, entry)
 			}
 		}
 	}
 
-	queryParams.Queries = append(queryParams.Selects, queryParams.Queries...)
-	logger.Logger.Debugf("Query Params: %s", spew.Sdump(queryParams))
-	return &queryParams
+	// Create QueryKeys to be used by ProcessLine
+	for _, query := range qp.Queries {
+		qp.QueryKeys = append(qp.QueryKeys, query.KeyPath)
+	}
+
+	logger.Logger.Debugf("Query Params: %s", spew.Sdump(qp))
+	return &qp
 }
