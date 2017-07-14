@@ -199,8 +199,6 @@ func (qp *QueryParams) handleExpr(entry interface{}) []QueryParam {
 // ProcessLine interates through all Queries created during the query parsing returning a bool stating whether all matched.
 func (qp *QueryParams) ProcessLine(line *[]byte) bool {
 	matchMap := []bool{}
-	// TODO Change all of this to use gjson.GetManyBytes
-
 	for idx, value := range gjson.GetManyBytes(*line, qp.QueryKeys...) {
 		if value.Type == 0 { // gjson way of saying key not found
 			break

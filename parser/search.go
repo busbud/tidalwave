@@ -80,16 +80,18 @@ func searchSubmit(query *sqlquery.QueryParams, logStruct *LogQueryStruct, submit
 			selectedEntries := []string{}
 			for idx, res := range gjson.GetManyBytes(line, query.Selects...) {
 				keyPath := query.Selects[idx]
+				keySplit := strings.Split(keyPath, ".")
+				lastKey := keySplit[len(keySplit)-1]
 				if res.Type == gjson.Number || res.Type == gjson.JSON {
-					selectedEntries = append(selectedEntries, `"`+keyPath+`":`+res.String())
+					selectedEntries = append(selectedEntries, `"`+lastKey+`":`+res.String())
 				} else if res.Type == gjson.True {
-					selectedEntries = append(selectedEntries, `"`+keyPath+`":true`)
+					selectedEntries = append(selectedEntries, `"`+lastKey+`":true`)
 				} else if res.Type == gjson.False {
-					selectedEntries = append(selectedEntries, `"`+keyPath+`":false`)
+					selectedEntries = append(selectedEntries, `"`+lastKey+`":false`)
 				} else if res.Type == gjson.Null {
-					selectedEntries = append(selectedEntries, `"`+keyPath+`":null`)
+					selectedEntries = append(selectedEntries, `"`+lastKey+`":null`)
 				} else {
-					selectedEntries = append(selectedEntries, `"`+keyPath+`":"`+res.String()+`"`)
+					selectedEntries = append(selectedEntries, `"`+lastKey+`":"`+res.String()+`"`)
 				}
 			}
 
