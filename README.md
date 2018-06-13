@@ -3,11 +3,11 @@ _JSON log file parsing with SQL_
 
 <a href="https://travis-ci.org/dustinblackman/tidalwave"><img src="https://img.shields.io/travis/dustinblackman/tidalwave.svg" alt="Build Status"></a> <a href="https://goreportcard.com/report/github.com/dustinblackman/tidalwave"><img src="https://goreportcard.com/badge/github.com/dustinblackman/tidalwave"></a> <img src="https://img.shields.io/github/release/dustinblackman/tidalwave.svg?maxAge=2592000">
 
-Tidalwave is an awesomely fast command line, server, and client application for recording and parsing JSON logs. It's meant to be an alternative to application suites like ELK which can be rather resource hungry, where Tidalwave only consumes resources when a search is in progress. It's recorded at being 8 times faster than grep with more in depth parsing then simple regex matching.
+Tidalwave is an awesomely fast command line, and server for parsing JSON logs. It's meant to be an alternative to application suites like ELK which can be rather resource hungry, where Tidalwave only consumes resources when a search is in progress. It's recorded at being 8 times faster than grep with more in depth parsing than simple regex matching.
 
 With a built in API with sockets for live tail, as well as the command line, everything is queryable with SQL. Tidalwave works best with logging modules such as [logrus](https://github.com/Sirupsen/logrus), [bunyan](https://github.com/trentm/node-bunyan), [slf4j](https://github.com/savoirtech/slf4j-json-logger), [python-json-logger](https://github.com/madzak/python-json-logger), [json_logger](https://github.com/rsolomo/json_logger) or anything else that outputs JSON logs.
 
-Tidalwave is in it's early stages where it's littered with TODOs, possible bugs, and all the other nifty things that come with early development.
+Tidalwave is in it's early stages where it's littered with TODOs, possible bugs, outdated docs, and all the other nifty things that come with early development.
 
 ## [Features / Roadmap](./ROADMAP.md)
 

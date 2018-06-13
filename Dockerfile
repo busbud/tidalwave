@@ -17,4 +17,4 @@ RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" | tee -a /etc/apk
 
 WORKDIR /app
 ENTRYPOINT ["/app/tidalwave"]
-CMD ["--client", "--server", "--docker"]
+CMD ["--server"]

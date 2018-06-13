@@ -1,12 +1,10 @@
 package cmd
 
 import (
-	"os"
 	"runtime"
 	"strings"
 
 	"github.com/dustinblackman/tidalwave/cli"
-	"github.com/dustinblackman/tidalwave/client"
 	"github.com/dustinblackman/tidalwave/logger"
 	"github.com/dustinblackman/tidalwave/server"
 	"github.com/spf13/cobra"
@@ -34,13 +32,7 @@ func run(rootCmd *cobra.Command, args []string) {
 	logger.Init(viper.GetBool("debug"))
 
 	// Server and Client
-	if viper.GetBool("server") && viper.GetBool("client") {
-		tidalwaveClient := client.New()
-		tidalwaveServer := server.New(version)
-		tidalwaveClient.AddServer(tidalwaveServer)
-	} else if viper.GetBool("client") {
-		client.New()
-	} else if viper.GetBool("server") {
+	if viper.GetBool("server") {
 		server.New(version)
 	}
 
@@ -67,8 +59,7 @@ func New() *cobra.Command {
 		Example: `  tidalwave -q "SELECT * FROM myapp WHERE line.cmd = 'uptime' AND date > '2016-10-10'"`,
 		Run:     run,
 		Short:   "A awesomely fast JSON log parsing application queryable with SQL",
-		Long: `Tidalwave is an awesomely fast command line, server, and client application for recording and parsing JSON logs.
-It has a built in API with sockets for live tail, as well as the command line all queryable with SQL.
+		Long: `Tidalwave is an awesomely fast command line, and server for parsing JSON logs.
 
 Version: ` + version + `
 Home: https://github.com/dustinblackman/tidalwave`,
@@ -83,20 +74,6 @@ Home: https://github.com/dustinblackman/tidalwave`,
 
 	// Cli Flags
 	flags.StringP("query", "q", "", "SQL query to execute against logs")
-	flags.BoolP("tail", "t", false, "Tail logs based on query")
-
-	// Client
-	flags.BoolP("client", "c", false, "Start in client mode")
-	flags.BoolP("docker", "d", false, "Enables logging through Docker")
-	dockerHost := os.Getenv("DOCKER_HOST")
-	if dockerHost == "" {
-		dockerHost = "unix:///var/run/docker.sock"
-	}
-	flags.String("docker-host", dockerHost, "Docker API endpoint, reads from env DOCKER_HOST")
-	flags.StringSliceP("fileentry", "f", nil,
-		"Name of application and path of log file to tail in format `APPNAME=LOGPATH`. Duplicate app names are allowed")
-	flags.StringSlice("pidentry", nil,
-		"Name of application and path to PID file in format `APPNAME=LOGPATH`. Duplicate app names are allowed")
 
 	// Server
 	flags.BoolP("server", "s", false, "Start in server mode")
@@ -118,11 +95,6 @@ Home: https://github.com/dustinblackman/tidalwave`,
 		"logroot",
 		"debug",
 		"query",
-		"tail",
-		"client",
-		"fileentry",
-		"docker",
-		"docker-host",
 		"server",
 		"host",
 		"port"} {

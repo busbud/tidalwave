@@ -1,5 +1,4 @@
-VERSION := 1.0.0
-GOVENDOR_TAG := v1.0.8
+VERSION := 0.1.0
 LINTER_TAG := v1.0.3
 
 # Creates binary
@@ -11,15 +10,12 @@ bashautocomplete:
 	go run ./tools/bash-autocomplete/bash.go
 	gofmt -s -w ./cmd/autocomplete.go
 
-# Gets govendor if not found and installs all dependencies
 deps:
-	@if [ "$$(which govendor)" = "" ]; then \
-		go get -v -u github.com/kardianos/govendor; \
-		cd $$GOPATH/src/github.com/kardianos/govendor;\
-		git checkout tags/$(GOVENDOR_TAG);\
-		go install;\
-	fi
-	govendor sync
+	which dep && echo "" || go get -u github.com/golang/dep/cmd/dep
+	dep ensure
+	rm -rf vendor/github.com/lfittl/pg_query_go
+	go get github.com/lfittl/pg_query_go
+	cd $$GOPATH/src/github.com/lfittl/pg_query_go && make build
 
 dev:
 	which reflex && echo "" || go get github.com/cespare/reflex
@@ -56,7 +52,7 @@ easyjson:
 	easyjson parser/parser.go
 
 # Builds and installs binary. Mainly used from people wanting to install from source.
-install: deps
+install:
 	go install -ldflags="-X github.com/dustinblackman/tidalwave/cmd.version $(VERSION)" *.go
 
 # Setups linter configuration for tests

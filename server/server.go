@@ -11,7 +11,6 @@ import (
 	"github.com/dustinblackman/tidalwave/logger"
 	"github.com/dustinblackman/tidalwave/parser"
 	"github.com/labstack/echo"
-	fastengine "github.com/labstack/echo/engine/fasthttp"
 	"github.com/labstack/echo/middleware"
 	"github.com/spf13/viper"
 )
@@ -22,14 +21,11 @@ const (
 
 // TidalwaveServer stores the state required for the server to operate.
 type TidalwaveServer struct {
-	LogRoot        string
-	SocketsManager *SocketsManager
+	LogRoot string
 }
 
 // WriteLog saves log entries to disk
 func (ts *TidalwaveServer) WriteLog(appName, logEntry string) {
-	ts.SocketsManager.NewLinesChannel <- NewLogLine{appName, logEntry}
-
 	logDate := time.Now().Format(fileDateFormat)
 	logPath := path.Join(ts.LogRoot, appName, time.Now().Format("2006-01-02"))
 	logFile := path.Join(logPath, fmt.Sprintf("%s_00_00.log", logDate))
@@ -60,7 +56,7 @@ func jsonError(ctx echo.Context, err error) {
 func New(version string) *TidalwaveServer {
 	logger.Logger.Info("Starting Server")
 	viper := viper.GetViper()
-	server := TidalwaveServer{viper.GetString("logroot"), NewSocketsManager()}
+	server := TidalwaveServer{viper.GetString("logroot")}
 
 	app := echo.New()
 	app.Use(middleware.Gzip())
@@ -68,8 +64,7 @@ func New(version string) *TidalwaveServer {
 	app.Use(middleware.Logger())
 	app.Use(middleware.Recover())
 
-	app.Get("/socket", server.SocketsManager.StartConnection)
-	app.Get("/query", func(ctx echo.Context) error {
+	app.GET("/query", func(ctx echo.Context) error {
 		queryString := ctx.QueryParam("q")
 		if len(queryString) < 6 {
 			ctx.JSON(400, map[string]string{"error": "Query length needs to be greater then 6"})
@@ -123,7 +118,7 @@ func New(version string) *TidalwaveServer {
 		return nil
 	})
 
-	go app.Run(fastengine.New(":" + viper.GetString("port")))
+	go app.Start(":" + viper.GetString("port"))
 
 	return &server
 }
