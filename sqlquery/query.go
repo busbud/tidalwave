@@ -243,7 +243,7 @@ func New(queryString string) *QueryParams {
 	}
 
 	logger.Logger.Debugf("Query Tree: %s", spew.Sdump(tree))
-	statement := tree.Statements[0].(pgNodes.SelectStmt)
+	statement := tree.Statements[0].(pgNodes.RawStmt).Stmt.(pgNodes.SelectStmt)
 	isDistrinct := len(statement.DistinctClause.Items) > 0
 
 	// Select statements
