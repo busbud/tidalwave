@@ -83,10 +83,11 @@ func New(version string) *TidalwaveServer {
 			first := true
 			for line := range results.Channel {
 				if first {
-					w.Write([]byte(line))
+					w.Write(line)
 					first = false
 				} else {
-					w.Write([]byte("," + line)) // TODO This breaks sometimes and is missing a comma (wat?)
+					w.Write([]byte(",")) // TODO This breaks sometimes and is missing a comma (wat?)
+					w.Write(line)
 				}
 			}
 			w.Write([]byte("]}"))

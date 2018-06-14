@@ -26,7 +26,7 @@ type TidalwaveParser struct {
 // ChannelResults returns array results through a channel
 type ChannelResults struct {
 	Type    string
-	Channel chan string
+	Channel chan []byte
 }
 
 // ArrayResults does stuff

@@ -50,7 +50,7 @@ func searchParse(query *sqlquery.QueryParams, logStruct *LogQueryStruct, coreLim
 	<-coreLimit
 }
 
-func searchSubmit(query *sqlquery.QueryParams, logStruct *LogQueryStruct, submitChannel chan<- string) {
+func searchSubmit(query *sqlquery.QueryParams, logStruct *LogQueryStruct, submitChannel chan<- []byte) {
 	file, err := os.Open(logStruct.LogPath)
 	if err != nil {
 		logger.Logger.Fatal(err)
@@ -95,22 +95,22 @@ func searchSubmit(query *sqlquery.QueryParams, logStruct *LogQueryStruct, submit
 				}
 			}
 
-			submitChannel <- "{" + strings.Join(selectedEntries, ",") + "}"
+			submitChannel <- []byte("{" + strings.Join(selectedEntries, ",") + "}")
 		} else {
 			// Return entire log line.
-			submitChannel <- string(line)
+			submitChannel <- line
 		}
 	}
 }
 
 // Search executes a normal match query over log results.
 // SELECT * FROM testapp WHERE date > '2016-10-05'
-func (tp *TidalwaveParser) Search() chan string {
+func (tp *TidalwaveParser) Search() chan []byte {
 	var wg sync.WaitGroup
 	logsLen := len(tp.LogPaths)
 	wg.Add(logsLen)
 
-	submitChannel := make(chan string)
+	submitChannel := make(chan []byte, 10000)
 	go func() {
 		coreLimit := make(chan bool, tp.MaxParallelism)
 		logs := make([]LogQueryStruct, logsLen)
