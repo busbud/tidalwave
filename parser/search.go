@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"bufio"
+	"io"
 	"os"
 	"strings"
 	"sync"
@@ -56,10 +58,18 @@ func searchParse(query *sqlquery.QueryParams, logStruct *LogQueryStruct, coreLim
 
 	lineNumber := -1
 	lastLineNumber := -1
-	scanner := createScanner(file)
-	for scanner.Scan() {
-		line := scanner.Bytes()
+	reader := bufio.NewReader(file)
+	delim := byte('\n')
+
+	for {
+		line, err := reader.ReadBytes(delim)
 		lineNumber++
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			logger.Logger.Fatal(err)
+		}
 
 		if query.ProcessLine(&line) {
 			if viper.GetBool("skip-sort") {
@@ -74,10 +84,6 @@ func searchParse(query *sqlquery.QueryParams, logStruct *LogQueryStruct, coreLim
 			}
 			lastLineNumber = lineNumber
 		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		logger.Logger.Fatal(err)
 	}
 
 	<-coreLimit
