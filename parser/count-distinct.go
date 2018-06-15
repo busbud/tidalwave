@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"bufio"
+	"io"
 	"os"
 	"sync"
 
@@ -19,9 +21,16 @@ func distinctCountParse(query *sqlquery.QueryParams, resultsChan chan<- map[stri
 	}
 	defer file.Close()
 
-	scanner := createScanner(file)
-	for scanner.Scan() {
-		line := scanner.Bytes()
+	reader := bufio.NewReader(file)
+	delim := byte('\n')
+	for {
+		line, err := reader.ReadBytes(delim)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			logger.Logger.Fatal(err)
+		}
 		if query.ProcessLine(&line) {
 			res := gjson.GetBytes(line, query.AggrPath)
 			if res.Type != 0 {
@@ -33,10 +42,6 @@ func distinctCountParse(query *sqlquery.QueryParams, resultsChan chan<- map[stri
 				}
 			}
 		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		logger.Logger.Fatal(err)
 	}
 
 	resultsChan <- results

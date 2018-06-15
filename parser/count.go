@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"bufio"
+	"io"
 	"os"
 	"sync"
 
@@ -18,16 +20,19 @@ func countParse(query *sqlquery.QueryParams, resultsChan chan<- int, logPath str
 	}
 	defer file.Close()
 
-	scanner := createScanner(file)
-	for scanner.Scan() {
-		line := scanner.Bytes()
+	reader := bufio.NewReader(file)
+	delim := byte('\n')
+	for {
+		line, err := reader.ReadBytes(delim)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			logger.Logger.Fatal(err)
+		}
 		if query.ProcessLine(&line) {
 			count++
 		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		logger.Logger.Fatal(err)
 	}
 
 	resultsChan <- count

@@ -96,12 +96,20 @@ func searchSubmit(query *sqlquery.QueryParams, logStruct *LogQueryStruct, submit
 	}
 	defer file.Close()
 
-	scanner := createScanner(file)
+	reader := bufio.NewReader(file)
+	delim := byte('\n')
 	lineNumber := -1
 	// TODO: Handle scanner errors
-	for scanner.Scan() {
-		line := scanner.Bytes()
+	for {
+		line, err := reader.ReadBytes(delim)
 		lineNumber++
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			logger.Logger.Fatal(err)
+		}
+
 		acceptLine := false
 		// TODO: Can this be better? Faster?
 		for _, lineRange := range logStruct.LineNumbers {
