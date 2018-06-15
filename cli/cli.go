@@ -3,7 +3,6 @@ package cli
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/dustinblackman/tidalwave/logger"
 	"github.com/dustinblackman/tidalwave/parser"
@@ -18,8 +17,7 @@ func Start() {
 	switch res := results.(type) {
 	case parser.ChannelResults:
 		for line := range res.Channel {
-			os.Stdout.Write(line)
-			os.Stdout.Write([]byte("\n"))
+			fmt.Println(line)
 		}
 	case parser.ArrayResults:
 		for _, line := range *res.Results {
