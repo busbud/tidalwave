@@ -74,6 +74,7 @@ Home: https://github.com/dustinblackman/tidalwave`,
 
 	// Cli Flags
 	flags.StringP("query", "q", "", "SQL query to execute against logs")
+	flags.Bool("skip-sort", false, "Skips sorting search queries, outputting lines as soon as they're found")
 
 	// Server
 	flags.BoolP("server", "s", false, "Start in server mode")
@@ -95,6 +96,7 @@ Home: https://github.com/dustinblackman/tidalwave`,
 		"logroot",
 		"debug",
 		"query",
+		"skip-sort",
 		"server",
 		"host",
 		"port"} {

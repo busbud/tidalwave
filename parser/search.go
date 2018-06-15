@@ -7,6 +7,7 @@ import (
 
 	"github.com/dustinblackman/tidalwave/logger"
 	"github.com/dustinblackman/tidalwave/sqlquery"
+	"github.com/spf13/viper"
 	"github.com/tidwall/gjson"
 )
 
@@ -16,7 +17,34 @@ type LogQueryStruct struct {
 	LineNumbers [][]int
 }
 
-func searchParse(query *sqlquery.QueryParams, logStruct *LogQueryStruct, coreLimit <-chan bool, wg *sync.WaitGroup) {
+func processLine(query *sqlquery.QueryParams, line []byte) []byte {
+	// If there were select statements, join those in to a smaller JSON object.
+	if len(query.Selects) > 0 {
+		selectedEntries := []string{}
+		for idx, res := range gjson.GetManyBytes(line, query.Selects...) {
+			keyPath := query.Selects[idx]
+			keySplit := strings.Split(keyPath, ".")
+			lastKey := keySplit[len(keySplit)-1]
+			if res.Type == gjson.Number || res.Type == gjson.JSON {
+				selectedEntries = append(selectedEntries, `"`+lastKey+`":`+res.String())
+			} else if res.Type == gjson.True {
+				selectedEntries = append(selectedEntries, `"`+lastKey+`":true`)
+			} else if res.Type == gjson.False {
+				selectedEntries = append(selectedEntries, `"`+lastKey+`":false`)
+			} else if res.Type == gjson.Null {
+				selectedEntries = append(selectedEntries, `"`+lastKey+`":null`)
+			} else {
+				selectedEntries = append(selectedEntries, `"`+lastKey+`":"`+res.String()+`"`)
+			}
+		}
+
+		return []byte("{" + strings.Join(selectedEntries, ",") + "}")
+	}
+
+	return line
+}
+
+func searchParse(query *sqlquery.QueryParams, logStruct *LogQueryStruct, coreLimit <-chan bool, submitChannel chan<- []byte, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	logger.Logger.Debugf("Processing: %s", logStruct.LogPath)
@@ -34,6 +62,11 @@ func searchParse(query *sqlquery.QueryParams, logStruct *LogQueryStruct, coreLim
 		lineNumber++
 
 		if query.ProcessLine(&line) {
+			if viper.GetBool("skip-sort") {
+				submitChannel <- line
+				continue
+			}
+
 			if lineNumber == (lastLineNumber+1) && lineNumber != 0 {
 				logStruct.LineNumbers[len(logStruct.LineNumbers)-1][1] = lineNumber
 			} else {
@@ -75,31 +108,7 @@ func searchSubmit(query *sqlquery.QueryParams, logStruct *LogQueryStruct, submit
 			continue
 		}
 
-		// If there were select statements, join those in to a smaller JSON object.
-		if len(query.Selects) > 0 {
-			selectedEntries := []string{}
-			for idx, res := range gjson.GetManyBytes(line, query.Selects...) {
-				keyPath := query.Selects[idx]
-				keySplit := strings.Split(keyPath, ".")
-				lastKey := keySplit[len(keySplit)-1]
-				if res.Type == gjson.Number || res.Type == gjson.JSON {
-					selectedEntries = append(selectedEntries, `"`+lastKey+`":`+res.String())
-				} else if res.Type == gjson.True {
-					selectedEntries = append(selectedEntries, `"`+lastKey+`":true`)
-				} else if res.Type == gjson.False {
-					selectedEntries = append(selectedEntries, `"`+lastKey+`":false`)
-				} else if res.Type == gjson.Null {
-					selectedEntries = append(selectedEntries, `"`+lastKey+`":null`)
-				} else {
-					selectedEntries = append(selectedEntries, `"`+lastKey+`":"`+res.String()+`"`)
-				}
-			}
-
-			submitChannel <- []byte("{" + strings.Join(selectedEntries, ",") + "}")
-		} else {
-			// Return entire log line.
-			submitChannel <- line
-		}
+		submitChannel <- processLine(query, line)
 	}
 }
 
@@ -116,15 +125,17 @@ func (tp *TidalwaveParser) Search() chan []byte {
 		logs := make([]LogQueryStruct, logsLen)
 		for idx, logPath := range tp.LogPaths {
 			logs[idx] = LogQueryStruct{LogPath: logPath}
-			go searchParse(tp.Query, &logs[idx], coreLimit, &wg)
+			go searchParse(tp.Query, &logs[idx], coreLimit, submitChannel, &wg)
 			coreLimit <- true
 		}
 
 		wg.Wait()
 
-		for idx := range logs {
-			if len(logs[idx].LineNumbers) > 0 {
-				searchSubmit(tp.Query, &logs[idx], submitChannel)
+		if !viper.GetBool("skip-sort") {
+			for idx := range logs {
+				if len(logs[idx].LineNumbers) > 0 {
+					searchSubmit(tp.Query, &logs[idx], submitChannel)
+				}
 			}
 		}
 
