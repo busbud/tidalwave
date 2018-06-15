@@ -17,7 +17,7 @@ func Start() {
 	switch res := results.(type) {
 	case parser.ChannelResults:
 		for line := range res.Channel {
-			fmt.Println(line)
+			fmt.Println(string(line[:]))
 		}
 	case parser.ArrayResults:
 		for _, line := range *res.Results {
