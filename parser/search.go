@@ -73,7 +73,7 @@ func searchParse(query *sqlquery.QueryParams, logStruct *LogQueryStruct, coreLim
 
 		if query.ProcessLine(&line) {
 			if viper.GetBool("skip-sort") {
-				submitChannel <- line
+				submitChannel <- processLine(query, line)
 				continue
 			}
 
