@@ -61,6 +61,14 @@
   version = "v1.0"
 
 [[projects]]
+  branch = "master"
+  digest = "1:5c3444689562053b027ef3b96372e306adbe0d7d109b6cdd48d01eb80f8bab14"
+  name = "github.com/jinzhu/copier"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "7e38e58719c33e0d44d585c4ab477a30f8cb82dd"
+
+[[projects]]
   digest = "1:9acadb9c8c15b8a9f635a7fa960c9a522b001a3919bc03df92ac26c372476aff"
   name = "github.com/labstack/echo"
   packages = [
@@ -106,9 +114,10 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:84a5a2b67486d5d67060ac393aa255d05d24ed5ee41daecd5635ec22657b6492"
+  digest = "1:aa3d8d42865c42626b5c1add193692d045b3188b1479f0a0a88690d21fe20083"
   name = "github.com/mailru/easyjson"
   packages = [
+    ".",
     "buffer",
     "jlexer",
     "jwriter",
@@ -318,10 +327,12 @@
   input-imports = [
     "github.com/davecgh/go-spew/spew",
     "github.com/dustinblackman/moment",
+    "github.com/jinzhu/copier",
     "github.com/labstack/echo",
     "github.com/labstack/echo/middleware",
     "github.com/lfittl/pg_query_go",
     "github.com/lfittl/pg_query_go/nodes",
+    "github.com/mailru/easyjson",
     "github.com/mailru/easyjson/jlexer",
     "github.com/mailru/easyjson/jwriter",
     "github.com/spf13/cobra",

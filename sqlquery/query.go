@@ -299,7 +299,7 @@ func New(queryString string) *QueryParams {
 	if statement.WhereClause != nil {
 		for _, entry := range qp.handleExpr(statement.WhereClause) {
 			if entry.KeyPath == "date" {
-				qp.Dates = append(qp.Dates, createDateParam(entry.ValString, entry.Operator))
+				qp.Dates = append(qp.Dates, createDateParam(entry.ValString, entry.Operator)...)
 			} else {
 				qp.Queries = append(qp.Queries, entry)
 			}

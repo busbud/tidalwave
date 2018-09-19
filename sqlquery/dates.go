@@ -1,6 +1,11 @@
 package sqlquery
 
-import "github.com/dustinblackman/moment"
+import (
+	"strings"
+
+	"github.com/dustinblackman/moment"
+	"github.com/jinzhu/copier"
+)
 
 const queryDateFormat = "YYYY-MM-DDTHH:mm:ss"
 
@@ -13,7 +18,7 @@ type DateParam struct {
 	Type     string
 }
 
-func createDateParam(date, operator string) DateParam {
+func createDateParam(date, operator string) []DateParam {
 	dateParam := DateParam{Operator: operator, TimeUsed: true}
 	date = stripQuotes(date)
 	if len(date) > 0 && len(date) <= 10 {
@@ -31,5 +36,21 @@ func createDateParam(date, operator string) DateParam {
 	}
 
 	dateParam.DateTime = moment.New().Moment(queryDateFormat, date)
-	return dateParam
+
+	if operator == "=" && dateParam.TimeUsed == false {
+		returnDateParam := DateParam{}
+		copier.Copy(&returnDateParam, &dateParam)
+
+		dateParam.Operator = ">="
+		returnDateParam.Operator = "<="
+		returnDateParam.Type = "end"
+
+		endDate := strings.Split(date, "T")[0] + "T23:59:59"
+		returnDateParam.Date = endDate
+		returnDateParam.DateTime = moment.New().Moment(queryDateFormat, endDate)
+
+		return []DateParam{dateParam, returnDateParam}
+	}
+
+	return []DateParam{dateParam}
 }
