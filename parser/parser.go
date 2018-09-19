@@ -105,7 +105,7 @@ func Query(queryString string) interface{} {
 		Query:          query,
 	}
 
-	logger.Logger.Debugf("Log Paths: %s", logPaths)
+	logger.Log.Debugf("Log Paths: %s", logPaths)
 
 	// TODO: Add execution time to results.
 	// TODO: Need to handle nil.

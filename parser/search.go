@@ -49,10 +49,10 @@ func processLine(query *sqlquery.QueryParams, line []byte) []byte {
 func searchParse(query *sqlquery.QueryParams, logStruct *LogQueryStruct, coreLimit <-chan bool, submitChannel chan<- []byte, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	logger.Logger.Debugf("Processing: %s", logStruct.LogPath)
+	logger.Log.Debugf("Processing: %s", logStruct.LogPath)
 	file, err := os.Open(logStruct.LogPath)
 	if err != nil {
-		logger.Logger.Fatal(err)
+		logger.Log.Fatal(err)
 	}
 	defer file.Close()
 
@@ -68,7 +68,7 @@ func searchParse(query *sqlquery.QueryParams, logStruct *LogQueryStruct, coreLim
 			break
 		}
 		if err != nil {
-			logger.Logger.Fatal(err)
+			logger.Log.Fatal(err)
 		}
 
 		if query.ProcessLine(&line) {
@@ -92,7 +92,7 @@ func searchParse(query *sqlquery.QueryParams, logStruct *LogQueryStruct, coreLim
 func searchSubmit(query *sqlquery.QueryParams, logStruct *LogQueryStruct, submitChannel chan<- []byte) {
 	file, err := os.Open(logStruct.LogPath)
 	if err != nil {
-		logger.Logger.Fatal(err)
+		logger.Log.Fatal(err)
 	}
 	defer file.Close()
 
@@ -107,7 +107,7 @@ func searchSubmit(query *sqlquery.QueryParams, logStruct *LogQueryStruct, submit
 			break
 		}
 		if err != nil {
-			logger.Logger.Fatal(err)
+			logger.Log.Fatal(err)
 		}
 
 		acceptLine := false

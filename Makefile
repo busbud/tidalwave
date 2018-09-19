@@ -3,7 +3,7 @@ LINTER_TAG := v1.0.3
 
 # Creates binary
 build:
-	go build -ldflags="-X github.com/dustinblackman/tidalwave/cmd.version=$(VERSION)" -o tidalwave *.go
+	go build -x -ldflags="-X github.com/dustinblackman/tidalwave/cmd.version=$(VERSION)" -o tidalwave *.go
 
 # Creates bash autocomplete file
 bashautocomplete:
@@ -13,6 +13,7 @@ bashautocomplete:
 deps:
 	which dep && echo "" || go get -u github.com/golang/dep/cmd/dep
 	dep ensure
+	go get -u github.com/mailru/easyjson/...
 	rm -rf vendor/github.com/lfittl/pg_query_go
 	go get -u github.com/lfittl/pg_query_go
 	cd $$GOPATH/src/github.com/lfittl/pg_query_go && make build

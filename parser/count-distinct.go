@@ -17,7 +17,7 @@ func distinctCountParse(query *sqlquery.QueryParams, resultsChan chan<- map[stri
 	results := map[string]int{}
 	file, err := os.Open(logPath)
 	if err != nil {
-		logger.Logger.Fatal(err)
+		logger.Log.Fatal(err)
 	}
 	defer file.Close()
 
@@ -29,7 +29,7 @@ func distinctCountParse(query *sqlquery.QueryParams, resultsChan chan<- map[stri
 			break
 		}
 		if err != nil {
-			logger.Logger.Fatal(err)
+			logger.Log.Fatal(err)
 		}
 		if query.ProcessLine(&line) {
 			res := gjson.GetBytes(line, query.AggrPath)

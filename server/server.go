@@ -1,11 +1,10 @@
 package server
 
 import (
-	"bufio"
-	"fmt"
 	"io"
 	"os"
-	"path"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/dustinblackman/tidalwave/logger"
@@ -19,44 +18,14 @@ const (
 	fileDateFormat = "2006-01-02T15-04-05" // YYYY-MM-DDTHH-mm-ss
 )
 
-// TidalwaveServer stores the state required for the server to operate.
-type TidalwaveServer struct {
-	LogRoot string
-}
-
-// WriteLog saves log entries to disk
-func (ts *TidalwaveServer) WriteLog(appName, logEntry string) {
-	logDate := time.Now().Format(fileDateFormat)
-	logPath := path.Join(ts.LogRoot, appName, time.Now().Format("2006-01-02"))
-	logFile := path.Join(logPath, fmt.Sprintf("%s_00_00.log", logDate))
-
-	if _, err := os.Stat(logPath); err != nil {
-		os.MkdirAll(logPath, 0777)
-	}
-
-	var fileHandle *os.File
-	if _, err := os.Stat(logFile); err != nil {
-		fileHandle, _ = os.Create(logFile)
-	} else {
-		fileHandle, _ = os.OpenFile(logFile, os.O_RDWR|os.O_APPEND, 0666)
-	}
-
-	writer := bufio.NewWriter(fileHandle)
-	defer fileHandle.Close()
-
-	fmt.Fprintln(writer, logEntry)
-	writer.Flush()
-}
-
 func jsonError(ctx echo.Context, err error) {
 	ctx.JSON(500, map[string]string{"error": err.Error()})
 }
 
 // New creates and starts the API server
-func New(version string) *TidalwaveServer {
-	logger.Logger.Info("Starting Server")
+func New(version string) {
+	logger.Log.Info("Starting Server")
 	viper := viper.GetViper()
-	server := TidalwaveServer{viper.GetString("logroot")}
 
 	app := echo.New()
 	app.Use(middleware.Gzip())
@@ -115,11 +84,17 @@ func New(version string) *TidalwaveServer {
 		}
 
 		elapsed := time.Since(start)
-		logger.Logger.Debug("Execution time: %s\n", elapsed)
+		logger.Log.Debug("Execution time: %s\n", elapsed)
 		return nil
 	})
 
 	go app.Start(":" + viper.GetString("port"))
 
-	return &server
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	for range c {
+		logger.Log.Info("Exit signal received, closing...")
+		app.Close()
+		os.Exit(0)
+	}
 }

@@ -1,11 +1,14 @@
 package cmd
 
 import (
+	"encoding/json"
+	"fmt"
+	"os"
 	"runtime"
 	"strings"
 
-	"github.com/dustinblackman/tidalwave/cli"
 	"github.com/dustinblackman/tidalwave/logger"
+	"github.com/dustinblackman/tidalwave/parser"
 	"github.com/dustinblackman/tidalwave/server"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -24,6 +27,32 @@ func maxParallelism() int {
 	return numCPU - 1
 }
 
+func cliQuery() {
+	viper := viper.GetViper()
+	results := parser.Query(viper.GetString("query"))
+
+	switch res := results.(type) {
+	case parser.ChannelResults:
+		for line := range res.Channel {
+			os.Stdout.Write(line)
+			os.Stdout.Write([]byte("\n"))
+		}
+	case parser.ArrayResults:
+		for _, line := range *res.Results {
+			fmt.Println(line)
+		}
+	case parser.ObjectResults:
+		str, err := json.Marshal(res.Results)
+		if err != nil {
+			logger.Log.Error("Error converting object results to JSON", err)
+			return
+		}
+		fmt.Println(string(str))
+	case parser.IntResults:
+		fmt.Println(res.Results)
+	}
+}
+
 func run(rootCmd *cobra.Command, args []string) {
 	viper.AutomaticEnv()
 	viper.ReadInConfig()
@@ -36,13 +65,9 @@ func run(rootCmd *cobra.Command, args []string) {
 		server.New(version)
 	}
 
-	if viper.GetBool("server") || viper.GetBool("client") {
-		select {} // Block forever
-	}
-
 	// Cli
 	if viper.GetString("query") != "" {
-		cli.Start()
+		cliQuery()
 	}
 
 	// If here and no query is set, then no proper flags were passed.

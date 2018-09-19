@@ -16,7 +16,7 @@ func countParse(query *sqlquery.QueryParams, resultsChan chan<- int, logPath str
 	count := 0
 	file, err := os.Open(logPath)
 	if err != nil {
-		logger.Logger.Fatal(err)
+		logger.Log.Fatal(err)
 	}
 	defer file.Close()
 
@@ -28,7 +28,7 @@ func countParse(query *sqlquery.QueryParams, resultsChan chan<- int, logPath str
 			break
 		}
 		if err != nil {
-			logger.Logger.Fatal(err)
+			logger.Log.Fatal(err)
 		}
 		if query.ProcessLine(&line) {
 			count++

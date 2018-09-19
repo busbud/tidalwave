@@ -225,7 +225,7 @@ func (qp *QueryParams) ProcessLine(line *[]byte) bool {
 
 // New parses a query string and returns a newly created QueryParams struc holding all parsed data.
 func New(queryString string) *QueryParams {
-	logger.Logger.Debug("Query: " + queryString)
+	logger.Log.Debug("Query: " + queryString)
 	qp := QueryParams{
 		SQLString:      queryString,
 		SQLStringLower: strings.ToLower(queryString),
@@ -239,10 +239,10 @@ func New(queryString string) *QueryParams {
 
 	tree, err := pgQuery.Parse(queryString)
 	if err != nil {
-		logger.Logger.Error(err.Error())
+		logger.Log.Error(err.Error())
 	}
 
-	logger.Logger.Debugf("Query Tree: %s", spew.Sdump(tree))
+	logger.Log.Debugf("Query Tree: %s", spew.Sdump(tree))
 	statement := tree.Statements[0].(pgNodes.RawStmt).Stmt.(pgNodes.SelectStmt)
 	isDistrinct := len(statement.DistinctClause.Items) > 0
 
@@ -273,7 +273,7 @@ func New(queryString string) *QueryParams {
 
 			funcType := selectNodeVal.Funcname.Items[0].(pgNodes.String).Str
 			if !dry.StringListContains(supportedFunctions, funcType) {
-				logger.Logger.Panicf("%s is not a supported function", funcType)
+				logger.Log.Panicf("%s is not a supported function", funcType)
 			}
 
 			// Default to just support count and distinct for now. Redo this later.
@@ -311,6 +311,6 @@ func New(queryString string) *QueryParams {
 		qp.QueryKeys = append(qp.QueryKeys, query.KeyPath)
 	}
 
-	logger.Logger.Debugf("Query Params: %s", spew.Sdump(qp))
+	logger.Log.Debugf("Query Params: %s", spew.Sdump(qp))
 	return &qp
 }
