@@ -10,7 +10,7 @@ import (
 	"github.com/dustinblackman/tidalwave/logger"
 	"github.com/dustinblackman/tidalwave/sqlquery"
 	"github.com/spf13/viper"
-	"github.com/tidwall/gjson"
+	"github.com/dustinblackman/gjson"
 )
 
 // LogQueryStruct contains all information about a log file, including the matching entries to the query.
@@ -26,6 +26,7 @@ func processLine(query *sqlquery.QueryParams, line []byte) []byte {
 		for idx, res := range gjson.GetManyBytes(line, query.Selects...) {
 			keyPath := query.Selects[idx]
 			keySplit := strings.Split(keyPath, ".")
+			// TODO Support `AS`
 			lastKey := keySplit[len(keySplit)-1]
 			if res.Type == gjson.Number || res.Type == gjson.JSON {
 				selectedEntries = append(selectedEntries, `"`+lastKey+`":`+res.String())

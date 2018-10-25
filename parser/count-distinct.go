@@ -8,7 +8,7 @@ import (
 
 	"github.com/dustinblackman/tidalwave/logger"
 	"github.com/dustinblackman/tidalwave/sqlquery"
-	"github.com/tidwall/gjson"
+	"github.com/dustinblackman/gjson"
 )
 
 func distinctCountParse(query *sqlquery.QueryParams, resultsChan chan<- map[string]int, logPath string, wg *sync.WaitGroup) {

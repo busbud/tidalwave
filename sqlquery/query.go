@@ -9,7 +9,7 @@ import (
 	"github.com/dustinblackman/tidalwave/logger"
 	pgQuery "github.com/lfittl/pg_query_go"
 	pgNodes "github.com/lfittl/pg_query_go/nodes"
-	"github.com/tidwall/gjson"
+	"github.com/dustinblackman/gjson"
 	dry "github.com/ungerik/go-dry"
 )
 

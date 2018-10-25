@@ -18,6 +18,14 @@
   version = "v3.2.0"
 
 [[projects]]
+  branch = "fix/getmanybytes"
+  digest = "1:4a7336a043478955581480787fbe37a217b45dfb7ffd2a821605e227803419b2"
+  name = "github.com/dustinblackman/gjson"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "4c7d6ff4a9669157760c888a3d37cdf7694551e8"
+
+[[projects]]
   branch = "master"
   digest = "1:d7062924b46c7dc582742709ace05f5d0c37f289d1673b0b3873084b6752e190"
   name = "github.com/dustinblackman/moment"
@@ -209,14 +217,6 @@
   version = "v1.2.0"
 
 [[projects]]
-  digest = "1:2cab41f59638fdb77dda96ab4f9b5860ef30f48967557254eba127e43c756f2e"
-  name = "github.com/tidwall/gjson"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "1e3f6aeaa5bad08d777ea7807b279a07885dd8b2"
-  version = "v1.1.3"
-
-[[projects]]
   branch = "master"
   digest = "1:d3f968e2a2c9f8506ed44b01b605ade0176ba6cf73ff679073e77cfdef2c0d55"
   name = "github.com/tidwall/match"
@@ -326,6 +326,7 @@
   analyzer-version = 1
   input-imports = [
     "github.com/davecgh/go-spew/spew",
+    "github.com/dustinblackman/gjson",
     "github.com/dustinblackman/moment",
     "github.com/jinzhu/copier",
     "github.com/labstack/echo",
@@ -337,7 +338,6 @@
     "github.com/mailru/easyjson/jwriter",
     "github.com/spf13/cobra",
     "github.com/spf13/viper",
-    "github.com/tidwall/gjson",
     "github.com/ungerik/go-dry",
     "go.uber.org/zap",
   ]
