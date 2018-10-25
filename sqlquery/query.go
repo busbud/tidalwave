@@ -6,10 +6,10 @@ import (
 	"strings"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/dustinblackman/gjson"
 	"github.com/dustinblackman/tidalwave/logger"
 	pgQuery "github.com/lfittl/pg_query_go"
 	pgNodes "github.com/lfittl/pg_query_go/nodes"
-	"github.com/dustinblackman/gjson"
 	dry "github.com/ungerik/go-dry"
 )
 
@@ -198,29 +198,25 @@ func (qp *QueryParams) handleExpr(entry interface{}) []QueryParam {
 
 // ProcessLine interates through all Queries created during the query parsing returning a bool stating whether all matched.
 func (qp *QueryParams) ProcessLine(line *[]byte) bool {
-	matchMap := []bool{}
-	for idx, value := range gjson.GetManyBytes(*line, qp.QueryKeys...) {
+	for idx, path := range qp.QueryKeys {
+		value := gjson.GetBytes(*line, path)
 		if value.Type == 0 { // gjson way of saying key not found
-			break
+			return false
 		}
 
 		q := &qp.Queries[idx]
 		if q.IsInt && value.Type == gjson.Number {
-			if ProcessInt(q, int(value.Num)) {
-				matchMap = append(matchMap, true)
-			} else {
-				break
+			if !ProcessInt(q, int(value.Num)) {
+				return false
 			}
 		} else {
-			if ProcessString(q, value.String()) {
-				matchMap = append(matchMap, true)
-			} else {
-				break
+			if !ProcessString(q, value.String()) {
+				return false
 			}
 		}
 	}
 
-	return len(matchMap) == len(qp.Queries)
+	return true
 }
 
 // New parses a query string and returns a newly created QueryParams struc holding all parsed data.
@@ -245,6 +241,17 @@ func New(queryString string) *QueryParams {
 	logger.Log.Debugf("Query Tree: %s", spew.Sdump(tree))
 	statement := tree.Statements[0].(pgNodes.RawStmt).Stmt.(pgNodes.SelectStmt)
 	isDistrinct := len(statement.DistinctClause.Items) > 0
+
+	// Where clauses
+	if statement.WhereClause != nil {
+		for _, entry := range qp.handleExpr(statement.WhereClause) {
+			if entry.KeyPath == "date" {
+				qp.Dates = append(qp.Dates, createDateParam(entry.ValString, entry.Operator)...)
+			} else {
+				qp.Queries = append(qp.Queries, entry)
+			}
+		}
+	}
 
 	// Select statements
 	for _, selectNode := range statement.TargetList.Items {
@@ -293,17 +300,6 @@ func New(queryString string) *QueryParams {
 	// From clauses
 	for _, fromNode := range statement.FromClause.Items {
 		qp.From = append(qp.From, qp.repairString(*fromNode.(pgNodes.RangeVar).Relname))
-	}
-
-	// Where clauses
-	if statement.WhereClause != nil {
-		for _, entry := range qp.handleExpr(statement.WhereClause) {
-			if entry.KeyPath == "date" {
-				qp.Dates = append(qp.Dates, createDateParam(entry.ValString, entry.Operator)...)
-			} else {
-				qp.Queries = append(qp.Queries, entry)
-			}
-		}
 	}
 
 	// Create QueryKeys to be used by ProcessLine
