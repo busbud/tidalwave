@@ -1,4 +1,4 @@
-VERSION := 0.1.0
+VERSION := 1.0.0
 LINTER_TAG := v1.0.3
 
 # Creates binary
