@@ -1,7 +1,6 @@
 package sqlquery
 
 import (
-	"bytes"
 	"regexp"
 	"strconv"
 	"strings"
@@ -47,7 +46,6 @@ type QueryParam struct {
 	ValIntArray    []int
 	ValString      string
 	ValStringArray []string
-	ValStringByte  []byte
 }
 
 // QueryParams holds all the information for a given query such SELECT, FROM, and WHERE statements to be easily processed later.
@@ -106,7 +104,6 @@ func (qp *QueryParams) assignTypeFieldsToParam(param QueryParam, value string) Q
 		param.ValInt = i
 	} else {
 		param.ValString = qp.repairString(stripQuotes(value))
-		param.ValStringByte = []byte(param.ValString)
 
 		// Handles building the Regex field on param when a string is selected
 		if dry.StringListContains(regexOperators, param.Operator) {
@@ -203,16 +200,12 @@ func (qp *QueryParams) handleExpr(entry interface{}) []QueryParam {
 // ProcessLine interates through all Queries created during the query parsing returning a bool stating whether all matched.
 func (qp *QueryParams) ProcessLine(line *[]byte) bool {
 	for idx, path := range qp.QueryKeys {
-		q := &qp.Queries[idx]
-		if q.Operator == "=" && !bytes.Contains(*line, q.ValStringByte) {
-			return false
-		}
-
 		value := gjson.GetBytes(*line, path)
 		if value.Type == 0 { // gjson way of saying key not found
 			return false
 		}
 
+		q := &qp.Queries[idx]
 		if q.IsInt && value.Type == gjson.Number {
 			if !ProcessInt(q, int(value.Num)) {
 				return false
