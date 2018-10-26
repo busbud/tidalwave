@@ -24,7 +24,14 @@ func processLine(query *sqlquery.QueryParams, line []byte) []byte {
 	if len(query.Selects) > 0 {
 		selectedEntries := []string{}
 		for idx, res := range gjson.GetManyBytes(line, query.Selects...) {
-			keyName := query.Queries[idx].KeyName
+			keyName := ""
+			for _, queryParam := range query.Queries {
+				if queryParam.KeyPath == query.Selects[idx] {
+					keyName = queryParam.KeyName
+					break
+				}
+			}
+
 			if res.Type == gjson.Number || res.Type == gjson.JSON {
 				selectedEntries = append(selectedEntries, `"`+keyName+`":`+res.String())
 			} else if res.Type == gjson.True {

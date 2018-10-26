@@ -273,6 +273,7 @@ func New(queryString string) *QueryParams {
 					keyName = keySplit[len(keySplit)-1]
 				}
 
+				// TODO Kill the need for SELECTS
 				qp.Selects = append(qp.Selects, keyPath)
 				qp.Queries = append(qp.Queries, QueryParam{
 					KeyName:  keyName,
