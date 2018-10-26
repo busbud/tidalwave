@@ -39,6 +39,7 @@ var stringReplacements = [][]string{
 type QueryParam struct {
 	IsInt          bool
 	KeyPath        string
+	KeyName        string
 	Regex          *regexp.Regexp
 	Operator       string
 	ValInt         int
@@ -256,14 +257,26 @@ func New(queryString string) *QueryParams {
 	// Select statements
 	for _, selectNode := range statement.TargetList.Items {
 		selectNode := selectNode.(pgNodes.ResTarget)
-		selectString := ""
+		keyName := ""
+		keyPath := ""
+
+		if selectNode.Name != nil {
+			keyName = *selectNode.Name
+		}
+
 		switch selectNodeVal := selectNode.Val.(type) {
 		case pgNodes.ColumnRef: // Regular select statement
-			selectString = qp.getSelectNodeString(selectNodeVal)
-			if len(selectString) > 0 {
-				qp.Selects = append(qp.Selects, selectString)
+			keyPath = qp.getSelectNodeString(selectNodeVal)
+			if len(keyPath) > 0 {
+				if keyName == "" {
+					keySplit := strings.Split(keyPath, ".")
+					keyName = keySplit[len(keySplit)-1]
+				}
+
+				qp.Selects = append(qp.Selects, keyPath)
 				qp.Queries = append(qp.Queries, QueryParam{
-					KeyPath:  selectString,
+					KeyName:  keyName,
+					KeyPath:  keyPath,
 					Operator: "exists",
 				})
 			}
@@ -292,7 +305,7 @@ func New(queryString string) *QueryParams {
 		}
 
 		if isDistrinct && qp.Type != TypeCountDistinct {
-			qp.AggrPath = selectString
+			qp.AggrPath = keyPath
 			qp.Type = TypeDistinct
 		}
 	}

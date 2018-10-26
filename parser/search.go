@@ -7,10 +7,10 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/dustinblackman/gjson"
 	"github.com/dustinblackman/tidalwave/logger"
 	"github.com/dustinblackman/tidalwave/sqlquery"
 	"github.com/spf13/viper"
-	"github.com/dustinblackman/gjson"
 )
 
 // LogQueryStruct contains all information about a log file, including the matching entries to the query.
@@ -24,20 +24,17 @@ func processLine(query *sqlquery.QueryParams, line []byte) []byte {
 	if len(query.Selects) > 0 {
 		selectedEntries := []string{}
 		for idx, res := range gjson.GetManyBytes(line, query.Selects...) {
-			keyPath := query.Selects[idx]
-			keySplit := strings.Split(keyPath, ".")
-			// TODO Support `AS`
-			lastKey := keySplit[len(keySplit)-1]
+			keyName := query.Queries[idx].KeyName
 			if res.Type == gjson.Number || res.Type == gjson.JSON {
-				selectedEntries = append(selectedEntries, `"`+lastKey+`":`+res.String())
+				selectedEntries = append(selectedEntries, `"`+keyName+`":`+res.String())
 			} else if res.Type == gjson.True {
-				selectedEntries = append(selectedEntries, `"`+lastKey+`":true`)
+				selectedEntries = append(selectedEntries, `"`+keyName+`":true`)
 			} else if res.Type == gjson.False {
-				selectedEntries = append(selectedEntries, `"`+lastKey+`":false`)
+				selectedEntries = append(selectedEntries, `"`+keyName+`":false`)
 			} else if res.Type == gjson.Null {
-				selectedEntries = append(selectedEntries, `"`+lastKey+`":null`)
+				selectedEntries = append(selectedEntries, `"`+keyName+`":null`)
 			} else {
-				selectedEntries = append(selectedEntries, `"`+lastKey+`":"`+res.String()+`"`)
+				selectedEntries = append(selectedEntries, `"`+keyName+`":"`+res.String()+`"`)
 			}
 		}
 
