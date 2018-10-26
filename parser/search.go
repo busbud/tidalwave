@@ -19,7 +19,7 @@ type LogQueryStruct struct {
 	LineNumbers [][]int
 }
 
-func processLine(query *sqlquery.QueryParams, line []byte) []byte {
+func formatLine(query *sqlquery.QueryParams, line []byte) []byte {
 	// If there were select statements, join those in to a smaller JSON object.
 	if len(query.Selects) > 0 {
 		selectedEntries := []string{}
@@ -78,7 +78,7 @@ func searchParse(query *sqlquery.QueryParams, logStruct *LogQueryStruct, coreLim
 
 		if query.ProcessLine(&line) {
 			if viper.GetBool("skip-sort") {
-				submitChannel <- processLine(query, line)
+				submitChannel <- formatLine(query, line)
 				continue
 			}
 
@@ -127,7 +127,7 @@ func searchSubmit(query *sqlquery.QueryParams, logStruct *LogQueryStruct, submit
 			continue
 		}
 
-		submitChannel <- processLine(query, line)
+		submitChannel <- formatLine(query, line)
 	}
 }
 
