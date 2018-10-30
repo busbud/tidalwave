@@ -36,6 +36,7 @@ func New(version string) {
 	app.GET("/query", func(ctx echo.Context) error {
 		queryString := ctx.QueryParam("q")
 		if len(queryString) < 6 {
+			// TODO Silly error.
 			ctx.JSON(400, map[string]string{"error": "Query length needs to be greater then 6"})
 			return nil
 		}
