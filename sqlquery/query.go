@@ -100,12 +100,11 @@ func (qp *QueryParams) getSelectNodeString(selectNodeVal pgNodes.ColumnRef) stri
 }
 
 func (qp *QueryParams) assignTypeFieldsToParam(param QueryParam, value string) QueryParam {
+	param.ValString = qp.repairString(stripQuotes(value))
 	if i, err := strconv.Atoi(value); err == nil {
 		param.IsInt = true
 		param.ValInt = i
 	} else {
-		param.ValString = qp.repairString(stripQuotes(value))
-
 		// Handles building the Regex field on param when a string is selected
 		if dry.StringListContains(regexOperators, param.Operator) {
 			regexString := ""
