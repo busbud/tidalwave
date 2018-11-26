@@ -1,16 +1,18 @@
 package sqlquery
 
 import (
-	"strings"
-
 	"github.com/dustinblackman/moment"
 )
 
-// TODO: Only strip at beginning and end
-func stripQuotes(value string) string {
-	value = strings.Replace(value, "'", "", -1)
-	value = strings.Replace(value, "\"", "", -1)
-	return value
+func stripQuotes(s string) string {
+	if len(s) > 0 && (s[0] == '"' || s[0] == '\'') {
+		s = s[1:]
+	}
+	if len(s) > 0 && (s[len(s)-1] == '"' || s[len(s)-1] == '\'') {
+		s = s[:len(s)-1]
+	}
+
+	return s
 }
 
 // ProcessInt handles processing an integer in a query

@@ -34,6 +34,7 @@ var supportedFunctions = []string{"count", "distinct"}
 var stringReplacements = [][]string{
 	{"-", "__dash__"},
 	{".#.", ".__map__."},
+	{"''", "__twosinglequotes__"},
 }
 
 // QueryParam holds a single piece of a queries WHERE and SELECT statements to be processed on log lines
@@ -84,7 +85,7 @@ func (qp *QueryParams) repairString(key string) string {
 
 	// Postgres' parser makes the entire string lower case before parsing it. This restores the casing.
 	idx := strings.Index(qp.SQLStringLower, strings.ToLower(key))
-	return qp.SQLString[idx : idx+len(key)]
+	return strings.Replace(qp.SQLString[idx:idx+len(key)], "''", "'", -1)
 }
 
 func (qp *QueryParams) getSelectNodeString(selectNodeVal pgNodes.ColumnRef) string {
