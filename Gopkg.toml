@@ -54,10 +54,6 @@
   version = "1.0.2"
 
 [[constraint]]
-  name = "github.com/dustinblackman/gjson"
-  branch = "fix/getmanybytes"
-
-[[constraint]]
   branch = "master"
   name = "github.com/ungerik/go-dry"
 

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/dustinblackman/gjson"
+	"github.com/tidwall/gjson"
 	"github.com/dustinblackman/tidalwave/logger"
 	"github.com/dustinblackman/tidalwave/sqlquery"
 	"github.com/spf13/viper"
