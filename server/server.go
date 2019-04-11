@@ -28,6 +28,7 @@ func New(version string) {
 	viper := viper.GetViper()
 
 	app := echo.New()
+	app.HideBanner = true
 	app.Use(middleware.Gzip())
 	app.Use(middleware.CORS())
 	app.Use(middleware.Logger())
