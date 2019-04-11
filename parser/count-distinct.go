@@ -2,10 +2,11 @@ package parser
 
 import (
 	"bufio"
-	"log"
+	"io"
 	"os"
 	"sync"
 
+	"github.com/dustinblackman/tidalwave/logger"
 	"github.com/dustinblackman/tidalwave/sqlquery"
 	"github.com/tidwall/gjson"
 )
@@ -16,15 +17,22 @@ func distinctCountParse(query *sqlquery.QueryParams, resultsChan chan<- map[stri
 	results := map[string]int{}
 	file, err := os.Open(logPath)
 	if err != nil {
-		log.Fatal(err)
+		logger.Log.Fatal(err)
 	}
 	defer file.Close()
 
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := scanner.Text()
-		if query.ProcessLine(line) {
-			res := gjson.Get(line, query.AggrPath)
+	reader := bufio.NewReader(file)
+	delim := byte('\n')
+	for {
+		line, err := reader.ReadBytes(delim)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			logger.Log.Fatal(err)
+		}
+		if query.ProcessLine(&line) {
+			res := gjson.GetBytes(line, query.AggrPath)
 			if res.Type != 0 {
 				value := res.String()
 				if _, ok := results[value]; ok {
@@ -34,10 +42,6 @@ func distinctCountParse(query *sqlquery.QueryParams, resultsChan chan<- map[stri
 				}
 			}
 		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
 	}
 
 	resultsChan <- results

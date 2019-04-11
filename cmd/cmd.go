@@ -1,13 +1,14 @@
 package cmd
 
 import (
+	"encoding/json"
+	"fmt"
 	"os"
 	"runtime"
 	"strings"
 
-	"github.com/Sirupsen/logrus"
-	"github.com/dustinblackman/tidalwave/cli"
-	"github.com/dustinblackman/tidalwave/client"
+	"github.com/dustinblackman/tidalwave/logger"
+	"github.com/dustinblackman/tidalwave/parser"
 	"github.com/dustinblackman/tidalwave/server"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -21,41 +22,52 @@ func maxParallelism() int {
 	maxProcs := runtime.GOMAXPROCS(0)
 	numCPU := runtime.NumCPU()
 	if maxProcs < numCPU {
-		return maxProcs - 1
+		return maxProcs
 	}
-	return numCPU - 1
+	return numCPU
+}
+
+func cliQuery() {
+	viper := viper.GetViper()
+	results := parser.Query(viper.GetString("query"))
+
+	switch res := results.(type) {
+	case parser.ChannelResults:
+		for line := range res.Channel {
+			os.Stdout.Write(line)
+			os.Stdout.Write([]byte("\n"))
+		}
+	case parser.ArrayResults:
+		for _, line := range *res.Results {
+			fmt.Println(line)
+		}
+	case parser.ObjectResults:
+		str, err := json.Marshal(res.Results)
+		if err != nil {
+			logger.Log.Error("Error converting object results to JSON", err)
+			return
+		}
+		fmt.Println(string(str))
+	case parser.IntResults:
+		fmt.Println(res.Results)
+	}
 }
 
 func run(rootCmd *cobra.Command, args []string) {
 	viper.AutomaticEnv()
 	viper.ReadInConfig()
 
-	// Logging
-	if viper.GetBool("verbose") {
-		logrus.SetLevel(logrus.DebugLevel)
-	} else {
-		logrus.SetFormatter(&logrus.JSONFormatter{})
-		logrus.SetLevel(logrus.InfoLevel)
-	}
+	// Init's global logger
+	logger.Init(viper.GetBool("debug"))
 
 	// Server and Client
-	if viper.GetBool("server") && viper.GetBool("client") {
-		tidalwaveClient := client.New()
-		tidalwaveServer := server.New(version)
-		tidalwaveClient.AddServer(tidalwaveServer)
-	} else if viper.GetBool("client") {
-		client.New()
-	} else if viper.GetBool("server") {
+	if viper.GetBool("server") {
 		server.New(version)
-	}
-
-	if viper.GetBool("server") || viper.GetBool("client") {
-		select {} // Block forever
 	}
 
 	// Cli
 	if viper.GetString("query") != "" {
-		cli.Start()
+		cliQuery()
 	}
 
 	// If here and no query is set, then no proper flags were passed.
@@ -72,8 +84,7 @@ func New() *cobra.Command {
 		Example: `  tidalwave -q "SELECT * FROM myapp WHERE line.cmd = 'uptime' AND date > '2016-10-10'"`,
 		Run:     run,
 		Short:   "A awesomely fast JSON log parsing application queryable with SQL",
-		Long: `Tidalwave is an awesomely fast command line, server, and client application for recording and parsing JSON logs.
-It has a built in API with sockets for live tail, as well as the command line all queryable with SQL.
+		Long: `Tidalwave is an awesomely fast command line, and server for parsing JSON logs.
 
 Version: ` + version + `
 Home: https://github.com/dustinblackman/tidalwave`,
@@ -84,24 +95,11 @@ Home: https://github.com/dustinblackman/tidalwave`,
 	flags.Int("max-parallelism", maxParallelism(),
 		"Set the maximum amount of threads to run when processing log files during queries. Default is the number of cores on system.")
 	flags.String("logroot", "./logs", "Log root directory where log files are stored")
-	flags.Bool("verbose", false, "Enable verbose logging")
+	flags.Bool("debug", false, "Enable debug logging")
 
 	// Cli Flags
 	flags.StringP("query", "q", "", "SQL query to execute against logs")
-	flags.BoolP("tail", "t", false, "Tail logs based on query")
-
-	// Client
-	flags.BoolP("client", "c", false, "Start in client mode")
-	flags.BoolP("docker", "d", false, "Enables logging through Docker")
-	dockerHost := os.Getenv("DOCKER_HOST")
-	if dockerHost == "" {
-		dockerHost = "unix:///var/run/docker.sock"
-	}
-	flags.String("docker-host", dockerHost, "Docker API endpoint, reads from env DOCKER_HOST")
-	flags.StringSliceP("fileentry", "f", nil,
-		"Name of application and path of log file to tail in format `APPNAME=LOGPATH`. Duplicate app names are allowed")
-	flags.StringSlice("pidentry", nil,
-		"Name of application and path to PID file in format `APPNAME=LOGPATH`. Duplicate app names are allowed")
+	flags.Bool("skip-sort", false, "Skips sorting search queries, outputting lines as soon as they're found")
 
 	// Server
 	flags.BoolP("server", "s", false, "Start in server mode")
@@ -121,13 +119,9 @@ Home: https://github.com/dustinblackman/tidalwave`,
 	for _, param := range []string{
 		"max-parallelism",
 		"logroot",
-		"verbose",
+		"debug",
 		"query",
-		"tail",
-		"client",
-		"fileentry",
-		"docker",
-		"docker-host",
+		"skip-sort",
 		"server",
 		"host",
 		"port"} {

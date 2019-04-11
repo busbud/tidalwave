@@ -2,10 +2,11 @@ package parser
 
 import (
 	"bufio"
-	"log"
+	"io"
 	"os"
 	"sync"
 
+	"github.com/dustinblackman/tidalwave/logger"
 	"github.com/dustinblackman/tidalwave/sqlquery"
 )
 
@@ -15,20 +16,23 @@ func countParse(query *sqlquery.QueryParams, resultsChan chan<- int, logPath str
 	count := 0
 	file, err := os.Open(logPath)
 	if err != nil {
-		log.Fatal(err)
+		logger.Log.Fatal(err)
 	}
 	defer file.Close()
 
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := scanner.Text()
-		if query.ProcessLine(line) {
+	reader := bufio.NewReader(file)
+	delim := byte('\n')
+	for {
+		line, err := reader.ReadBytes(delim)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			logger.Log.Fatal(err)
+		}
+		if query.ProcessLine(&line) {
 			count++
 		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
 	}
 
 	resultsChan <- count

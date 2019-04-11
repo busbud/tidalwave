@@ -4,15 +4,16 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-	"time"
 
+	"github.com/dustinblackman/moment"
+	"github.com/dustinblackman/tidalwave/logger"
 	"github.com/dustinblackman/tidalwave/sqlquery"
 	"github.com/spf13/viper"
 )
 
 const (
-	fileDateFormat   = "2006-01-02T15_04_05" // YYYY-MM-DDTHH_mm_ss
-	folderDateFormat = "2006-01-02"          // YYYY-MM-DD
+	fileDateFormat   = "YYYY-MM-DDTHH-mm-ss"
+	folderDateFormat = "YYYY-MM-DD"
 )
 
 // TidalwaveParser does stuff
@@ -25,7 +26,7 @@ type TidalwaveParser struct {
 // ChannelResults returns array results through a channel
 type ChannelResults struct {
 	Type    string
-	Channel chan string
+	Channel chan []byte
 }
 
 // ArrayResults does stuff
@@ -49,10 +50,10 @@ type ObjectResults struct {
 	Results *map[string]int `json:"results"`
 }
 
-func dateMatch(date time.Time, dates []sqlquery.DateParam) bool {
+func dateMatch(date *moment.Moment, dates []sqlquery.DateParam, dateOnly bool) bool {
 	acceptedDatesCount := 0
 	for _, dateParam := range dates {
-		if (dateParam.Type == "start" && sqlquery.ProcessDate(&dateParam, date)) || (dateParam.Type == "end" && sqlquery.ProcessDate(&dateParam, date)) {
+		if sqlquery.ProcessDate(&dateParam, *date, dateOnly) {
 			acceptedDatesCount++
 		}
 	}
@@ -66,13 +67,13 @@ func GetLogPathsForApp(query *sqlquery.QueryParams, appName, logRoot string) []s
 	folderGlob, _ := filepath.Glob(path.Join(logRoot, appName+"/*/"))
 
 	for _, folderPath := range folderGlob {
-		folderDate, _ := time.Parse(folderDateFormat, path.Base(folderPath))
-		if dateMatch(folderDate, query.Dates) {
+		folderDate := moment.New().Moment(folderDateFormat, path.Base(folderPath))
+		if dateMatch(folderDate, query.Dates, true) {
 			globLogs, _ := filepath.Glob(path.Join(folderPath, "/*.log"))
 
 			for _, filename := range globLogs {
-				logDate, _ := time.Parse(fileDateFormat, strings.TrimSuffix(path.Base(filename), filepath.Ext(filename)))
-				if dateMatch(logDate, query.Dates) {
+				logDate := moment.New().Moment(fileDateFormat, strings.TrimSuffix(path.Base(filename), filepath.Ext(filename)))
+				if dateMatch(logDate, query.Dates, false) {
 					logPaths = append(logPaths, filename)
 				}
 			}
@@ -95,12 +96,16 @@ func GetLogPaths(query *sqlquery.QueryParams, logRoot string) []string {
 // Query executes a given query string.
 func Query(queryString string) interface{} {
 	viper := viper.GetViper()
+
 	query := sqlquery.New(queryString)
+	logPaths := GetLogPaths(query, viper.GetString("logroot"))
 	parser := TidalwaveParser{
 		MaxParallelism: viper.GetInt("max-parallelism"),
-		LogPaths:       GetLogPaths(query, viper.GetString("logroot")),
+		LogPaths:       logPaths,
 		Query:          query,
 	}
+
+	logger.Log.Debugf("Log Paths: %s", logPaths)
 
 	// TODO: Add execution time to results.
 	// TODO: Need to handle nil.

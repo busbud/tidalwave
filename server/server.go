@@ -1,67 +1,31 @@
 package server
 
 import (
-	"bufio"
-	"fmt"
 	"io"
 	"os"
-	"path"
+	"os/signal"
+	"syscall"
 	"time"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/dustinblackman/tidalwave/logger"
 	"github.com/dustinblackman/tidalwave/parser"
 	"github.com/labstack/echo"
-	fastengine "github.com/labstack/echo/engine/fasthttp"
 	"github.com/labstack/echo/middleware"
 	"github.com/spf13/viper"
 )
 
 const (
-	fileDateFormat = "2006-01-02T15_04_05" // YYYY-MM-DDTHH_mm_ss
+	fileDateFormat = "2006-01-02T15-04-05" // YYYY-MM-DDTHH-mm-ss
 )
-
-// TidalwaveServer stores the state required for the server to operate.
-type TidalwaveServer struct {
-	LogRoot        string
-	SocketsManager *SocketsManager
-}
-
-// WriteLog saves log entries to disk
-func (ts *TidalwaveServer) WriteLog(appName, logEntry string) {
-	ts.SocketsManager.NewLinesChannel <- NewLogLine{appName, logEntry}
-
-	logDate := time.Now().Format(fileDateFormat)
-	logPath := path.Join(ts.LogRoot, appName, time.Now().Format("2006-01-02"))
-	logFile := path.Join(logPath, fmt.Sprintf("%s_00_00.log", logDate))
-
-	if _, err := os.Stat(logPath); err != nil {
-		os.MkdirAll(logPath, 0777)
-	}
-
-	var fileHandle *os.File
-	if _, err := os.Stat(logFile); err != nil {
-		fileHandle, _ = os.Create(logFile)
-	} else {
-		fileHandle, _ = os.OpenFile(logFile, os.O_RDWR|os.O_APPEND, 0666)
-	}
-
-	writer := bufio.NewWriter(fileHandle)
-	defer fileHandle.Close()
-
-	fmt.Fprintln(writer, logEntry)
-	writer.Flush()
-}
 
 func jsonError(ctx echo.Context, err error) {
 	ctx.JSON(500, map[string]string{"error": err.Error()})
 }
 
 // New creates and starts the API server
-func New(version string) *TidalwaveServer {
-	logrus := logrus.WithFields(logrus.Fields{"module": "server"})
-	logrus.Info("Starting Server")
+func New(version string) {
+	logger.Log.Info("Starting Server")
 	viper := viper.GetViper()
-	server := TidalwaveServer{viper.GetString("logroot"), NewSocketsManager()}
 
 	app := echo.New()
 	app.Use(middleware.Gzip())
@@ -69,10 +33,10 @@ func New(version string) *TidalwaveServer {
 	app.Use(middleware.Logger())
 	app.Use(middleware.Recover())
 
-	app.Get("/socket", server.SocketsManager.StartConnection)
-	app.Get("/query", func(ctx echo.Context) error {
+	app.GET("/query", func(ctx echo.Context) error {
 		queryString := ctx.QueryParam("q")
 		if len(queryString) < 6 {
+			// TODO Silly error.
 			ctx.JSON(400, map[string]string{"error": "Query length needs to be greater then 6"})
 			return nil
 		}
@@ -89,10 +53,11 @@ func New(version string) *TidalwaveServer {
 			first := true
 			for line := range results.Channel {
 				if first {
-					w.Write([]byte(line))
+					w.Write(line)
 					first = false
 				} else {
-					w.Write([]byte("," + line)) // TODO This breaks sometimes and is missing a comma (wat?)
+					w.Write([]byte(",")) // TODO This breaks sometimes and is missing a comma (wat?)
+					w.Write(line)
 				}
 			}
 			w.Write([]byte("]}"))
@@ -120,11 +85,17 @@ func New(version string) *TidalwaveServer {
 		}
 
 		elapsed := time.Since(start)
-		logrus.Debug("Execution time: %s\n", elapsed)
+		logger.Log.Debug("Execution time: %s\n", elapsed)
 		return nil
 	})
 
-	go app.Run(fastengine.New(":" + viper.GetString("port")))
+	go app.Start(":" + viper.GetString("port"))
 
-	return &server
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	for range c {
+		logger.Log.Info("Exit signal received, closing...")
+		app.Close()
+		os.Exit(0)
+	}
 }

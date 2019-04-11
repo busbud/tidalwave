@@ -1,4 +1,4 @@
-FROM alpine:3.4
+FROM alpine:3.8
 
 ENV GOPATH /go
 ENV PATH "${GOPATH}/bin:${PATH}"
@@ -6,7 +6,7 @@ WORKDIR /go/src/github.com/dustinblackman/tidalwave
 COPY ./ ./
 
 RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" | tee -a /etc/apk/repositories && \
-    apk add -U git build-base go=1.7.3-r0 && \
+    apk add -U git build-base go=1.11.1-r0 && \
     make deps && \
     make build && \
     mkdir -p /app && \
@@ -17,4 +17,3 @@ RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" | tee -a /etc/apk
 
 WORKDIR /app
 ENTRYPOINT ["/app/tidalwave"]
-CMD ["--client", "--server", "--docker"]
