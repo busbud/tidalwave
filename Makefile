@@ -13,14 +13,13 @@ bashautocomplete:
 deps:
 	which dep && echo "" || go get -u github.com/golang/dep/cmd/dep
 	dep ensure
-	go get -u github.com/mailru/easyjson/...
 	rm -rf vendor/github.com/lfittl/pg_query_go
 	go get -u github.com/lfittl/pg_query_go
 	cd $$GOPATH/src/github.com/lfittl/pg_query_go && make build
 
 # Creates easyjson file for parser/parser.go
 easyjson:
-	easyjson parser/parser.go
+	runvendor github.com/mailru/easyjson/easyjson parser/parser.go
 
 # Builds and installs binary. Mainly used from people wanting to install from source.
 install:
