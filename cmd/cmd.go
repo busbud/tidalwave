@@ -3,6 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"runtime"
 	"strings"
@@ -29,7 +30,17 @@ func maxParallelism() int {
 
 func cliQuery() {
 	viper := viper.GetViper()
-	results := parser.Query(viper.GetString("query"))
+
+	query := viper.GetString("query")
+	if query == "-" {
+		queryBytes, err := ioutil.ReadAll(os.Stdin)
+		if err != nil {
+			panic(err)
+		}
+		query = strings.TrimSpace(string(queryBytes))
+	}
+
+	results := parser.Query(query)
 
 	switch res := results.(type) {
 	case parser.ChannelResults:
@@ -98,7 +109,7 @@ Home: https://github.com/dustinblackman/tidalwave`,
 	flags.Bool("debug", false, "Enable debug logging")
 
 	// Cli Flags
-	flags.StringP("query", "q", "", "SQL query to execute against logs")
+	flags.StringP("query", "q", "", "SQL query to execute against logs. '-' is accepted for piping in from stdin.")
 	flags.Bool("skip-sort", false, "Skips sorting search queries, outputting lines as soon as they're found")
 
 	// Server

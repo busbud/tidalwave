@@ -1,40 +1,31 @@
-VERSION := 1.0.0
-LINTER_TAG := v1.0.3
+VERSION := 1.1.0
 
 # Creates binary
 build:
-	go build -x -ldflags="-X github.com/dustinblackman/tidalwave/cmd.version=$(VERSION)" -o tidalwave *.go
+	go build -x -ldflags="-X github.com/dustinblackman/tidalwave/cmd.version=$(VERSION)" -o tidalwave tidalwave.go
+
+cli-deps:
+	@which gobin &> /dev/null || GO111MODULE=off go get -u github.com/myitcv/gobin
 
 # Creates bash autocomplete file
 bashautocomplete:
 	go run ./tools/bash-autocomplete/bash.go
 	gofmt -s -w ./cmd/autocomplete.go
 
-deps:
-	which dep && echo "" || go get -u github.com/golang/dep/cmd/dep
-	dep ensure
-	rm -rf vendor/github.com/lfittl/pg_query_go
-	go get -u github.com/lfittl/pg_query_go
-	cd $$GOPATH/src/github.com/lfittl/pg_query_go && make build
-
 # Creates easyjson file for parser/parser.go
-easyjson:
-	runvendor github.com/mailru/easyjson/easyjson parser/parser.go
+easyjson: cli-deps
+	gobin -m -run github.com/mailru/easyjson/easyjson parser/parser.go
 
 # Builds and installs binary. Mainly used from people wanting to install from source.
 install:
 	go install -ldflags="-X github.com/dustinblackman/tidalwave/cmd.version $(VERSION)" *.go
 
-# Setups linter configuration for tests
-setup-linter:
-	@if [ "$$(which gometalinter)" = "" ]; then \
-		go get -u -v github.com/alecthomas/gometalinter; \
-		cd $$GOPATH/src/github.com/alecthomas/gometalinter;\
-		git checkout tags/$(LINTER_TAG);\
-		go install;\
-		gometalinter --install;\
-	fi
-
 # Runs tests
-test: setup-linter
-	gometalinter --vendor --fast --dupl-threshold=100 --cyclo-over=25 --min-occurrences=5 --disable=gas --disable=gotype ./...
+lint: cli-deps
+	gobin -m -run github.com/golangci/golangci-lint/cmd/golangci-lint run ./...
+
+lint-fix: cli-deps
+	gobin -m -run github.com/golangci/golangci-lint/cmd/golangci-lint run --fix ./...
+
+test:
+	make lint
