@@ -51,14 +51,13 @@ type ObjectResults struct {
 }
 
 func dateMatch(date *moment.Moment, dates []sqlquery.DateParam, dateOnly bool) bool {
-	acceptedDatesCount := 0
 	for _, dateParam := range dates {
-		if sqlquery.ProcessDate(&dateParam, *date, dateOnly) {
-			acceptedDatesCount++
+		if !sqlquery.ProcessDate(&dateParam, *date, dateOnly) {
+			return false
 		}
 	}
 
-	return acceptedDatesCount == len(dates)
+	return true
 }
 
 // GetLogPathsForApp returns all log paths matching a query for a specified app
@@ -66,6 +65,7 @@ func GetLogPathsForApp(query *sqlquery.QueryParams, appName, logRoot string) []s
 	var logPaths []string
 	folderGlob, _ := filepath.Glob(path.Join(logRoot, appName+"/*/"))
 
+	// TODO This can be optimized for single date queries.
 	for _, folderPath := range folderGlob {
 		folderDate := moment.New().Moment(folderDateFormat, path.Base(folderPath))
 		if dateMatch(folderDate, query.Dates, true) {
