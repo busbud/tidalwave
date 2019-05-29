@@ -1,6 +1,7 @@
 dist/
 tmp/
 logs/
+.gobincache/
 vendor/*/
 !vendor/vendor.json
 

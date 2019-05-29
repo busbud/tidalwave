@@ -1,11 +1,14 @@
 language: go
 go:
- - 1.11
+ - 1.12
+env:
+  - GO111MODULE=on
 cache:
   directories:
-    - vendor
+    - .gobincache
+    - /home/travis/gopath/pkg/mod/
 install:
-  - make deps
-  - make setup-linter
+  - go mod download
 script:
- - make test
+ - make build
+ - make lint
