@@ -6,10 +6,10 @@ import (
 	"strings"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/tidwall/gjson"
 	"github.com/dustinblackman/tidalwave/logger"
 	pgQuery "github.com/lfittl/pg_query_go"
 	pgNodes "github.com/lfittl/pg_query_go/nodes"
+	"github.com/tidwall/gjson"
 	dry "github.com/ungerik/go-dry"
 )
 
@@ -22,6 +22,11 @@ const (
 	TypeCountDistinct = "count-distinct"
 	// TypeSearch specifies specifies result is a search result
 	TypeSearch = "search"
+
+	// OperatorBetween constant.
+	OperatorBetween = "between"
+	// OperatorIn constant.
+	OperatorIn = "in"
 )
 
 // List of operators that use the Regex field in QueryParam
@@ -132,7 +137,7 @@ func (qp *QueryParams) handleCompareExpr(expr pgNodes.A_Expr) []QueryParam {
 	// Param root used for everything except BETWEEN.
 	param := QueryParam{
 		KeyPath:  qp.getSelectNodeString(expr.Lexpr.(pgNodes.ColumnRef)),
-		Operator: expr.Name.Items[0].(pgNodes.String).Str,
+		Operator: strings.ToLower(expr.Name.Items[0].(pgNodes.String).Str),
 	}
 
 	switch right := expr.Rexpr.(type) {
@@ -140,7 +145,7 @@ func (qp *QueryParams) handleCompareExpr(expr pgNodes.A_Expr) []QueryParam {
 		param = qp.assignTypeFieldsToParam(param, convertAConst(right))
 
 	case pgNodes.List:
-		if param.Operator == "BETWEEN" {
+		if param.Operator == OperatorBetween {
 			fromQuery := qp.assignTypeFieldsToParam(QueryParam{
 				KeyPath:  param.KeyPath,
 				Operator: ">=",
@@ -152,6 +157,9 @@ func (qp *QueryParams) handleCompareExpr(expr pgNodes.A_Expr) []QueryParam {
 
 			return []QueryParam{fromQuery, toQuery}
 		}
+
+		// If we're comparing to a list, there's no way the operator is "=". Change it to "IN".
+		param.Operator = OperatorIn
 
 		for _, val := range right.Items {
 			val := convertAConst(val.(pgNodes.A_Const))
