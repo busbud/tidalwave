@@ -4,7 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/dustinblackman/tidalwave/cmd"
+	"github.com/busbud/tidalwave/cmd"
 )
 
 func main() {

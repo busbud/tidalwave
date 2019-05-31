@@ -8,9 +8,9 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/dustinblackman/tidalwave/logger"
-	"github.com/dustinblackman/tidalwave/parser"
-	"github.com/dustinblackman/tidalwave/server"
+	"github.com/busbud/tidalwave/logger"
+	"github.com/busbud/tidalwave/parser"
+	"github.com/busbud/tidalwave/server"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -98,7 +98,7 @@ func New() *cobra.Command {
 		Long: `Tidalwave is an awesomely fast command line, and server for parsing JSON logs.
 
 Version: ` + version + `
-Home: https://github.com/dustinblackman/tidalwave`,
+Home: https://github.com/busbud/tidalwave`,
 	}
 
 	flags := rootCmd.PersistentFlags()

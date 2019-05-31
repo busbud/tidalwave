@@ -7,8 +7,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/dustinblackman/tidalwave/logger"
-	"github.com/dustinblackman/tidalwave/parser"
+	"github.com/busbud/tidalwave/logger"
+	"github.com/busbud/tidalwave/parser"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"github.com/spf13/viper"

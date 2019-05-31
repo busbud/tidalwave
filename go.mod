@@ -1,4 +1,4 @@
-module github.com/dustinblackman/tidalwave
+module github.com/busbud/tidalwave
 
 go 1.12
 

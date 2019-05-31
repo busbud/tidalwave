@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/dustinblackman/tidalwave/logger"
+	"github.com/busbud/tidalwave/logger"
 	pgQuery "github.com/lfittl/pg_query_go"
 	pgNodes "github.com/lfittl/pg_query_go/nodes"
 	"github.com/tidwall/gjson"

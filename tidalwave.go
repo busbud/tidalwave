@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"github.com/dustinblackman/tidalwave/cmd"
+	"github.com/busbud/tidalwave/cmd"
 )
 
 func main() {

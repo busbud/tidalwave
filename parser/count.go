@@ -6,8 +6,8 @@ import (
 	"os"
 	"sync"
 
-	"github.com/dustinblackman/tidalwave/logger"
-	"github.com/dustinblackman/tidalwave/sqlquery"
+	"github.com/busbud/tidalwave/logger"
+	"github.com/busbud/tidalwave/sqlquery"
 )
 
 func countParse(query *sqlquery.QueryParams, resultsChan chan<- int, logPath string, wg *sync.WaitGroup) {

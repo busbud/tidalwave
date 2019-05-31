@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/dustinblackman/moment"
-	"github.com/dustinblackman/tidalwave/logger"
-	"github.com/dustinblackman/tidalwave/sqlquery"
+	"github.com/busbud/tidalwave/logger"
+	"github.com/busbud/tidalwave/sqlquery"
 	"github.com/spf13/viper"
 )
 

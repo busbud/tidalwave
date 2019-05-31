@@ -17,7 +17,7 @@ var (
 	_ easyjson.Marshaler
 )
 
-func easyjsonF59a38b1DecodeGithubComDustinblackmanTidalwaveParser(in *jlexer.Lexer, out *ObjectResults) {
+func easyjsonF59a38b1DecodeGithubCombusbudTidalwaveParser(in *jlexer.Lexer, out *ObjectResults) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -76,7 +76,7 @@ func easyjsonF59a38b1DecodeGithubComDustinblackmanTidalwaveParser(in *jlexer.Lex
 		in.Consumed()
 	}
 }
-func easyjsonF59a38b1EncodeGithubComDustinblackmanTidalwaveParser(out *jwriter.Writer, in ObjectResults) {
+func easyjsonF59a38b1EncodeGithubCombusbudTidalwaveParser(out *jwriter.Writer, in ObjectResults) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -126,27 +126,27 @@ func easyjsonF59a38b1EncodeGithubComDustinblackmanTidalwaveParser(out *jwriter.W
 // MarshalJSON supports json.Marshaler interface
 func (v ObjectResults) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonF59a38b1EncodeGithubComDustinblackmanTidalwaveParser(&w, v)
+	easyjsonF59a38b1EncodeGithubCombusbudTidalwaveParser(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v ObjectResults) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonF59a38b1EncodeGithubComDustinblackmanTidalwaveParser(w, v)
+	easyjsonF59a38b1EncodeGithubCombusbudTidalwaveParser(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *ObjectResults) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonF59a38b1DecodeGithubComDustinblackmanTidalwaveParser(&r, v)
+	easyjsonF59a38b1DecodeGithubCombusbudTidalwaveParser(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *ObjectResults) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonF59a38b1DecodeGithubComDustinblackmanTidalwaveParser(l, v)
+	easyjsonF59a38b1DecodeGithubCombusbudTidalwaveParser(l, v)
 }
-func easyjsonF59a38b1DecodeGithubComDustinblackmanTidalwaveParser1(in *jlexer.Lexer, out *IntResults) {
+func easyjsonF59a38b1DecodeGithubCombusbudTidalwaveParser1(in *jlexer.Lexer, out *IntResults) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -179,7 +179,7 @@ func easyjsonF59a38b1DecodeGithubComDustinblackmanTidalwaveParser1(in *jlexer.Le
 		in.Consumed()
 	}
 }
-func easyjsonF59a38b1EncodeGithubComDustinblackmanTidalwaveParser1(out *jwriter.Writer, in IntResults) {
+func easyjsonF59a38b1EncodeGithubCombusbudTidalwaveParser1(out *jwriter.Writer, in IntResults) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -209,27 +209,27 @@ func easyjsonF59a38b1EncodeGithubComDustinblackmanTidalwaveParser1(out *jwriter.
 // MarshalJSON supports json.Marshaler interface
 func (v IntResults) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonF59a38b1EncodeGithubComDustinblackmanTidalwaveParser1(&w, v)
+	easyjsonF59a38b1EncodeGithubCombusbudTidalwaveParser1(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v IntResults) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonF59a38b1EncodeGithubComDustinblackmanTidalwaveParser1(w, v)
+	easyjsonF59a38b1EncodeGithubCombusbudTidalwaveParser1(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *IntResults) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonF59a38b1DecodeGithubComDustinblackmanTidalwaveParser1(&r, v)
+	easyjsonF59a38b1DecodeGithubCombusbudTidalwaveParser1(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *IntResults) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonF59a38b1DecodeGithubComDustinblackmanTidalwaveParser1(l, v)
+	easyjsonF59a38b1DecodeGithubCombusbudTidalwaveParser1(l, v)
 }
-func easyjsonF59a38b1DecodeGithubComDustinblackmanTidalwaveParser2(in *jlexer.Lexer, out *ArrayResults) {
+func easyjsonF59a38b1DecodeGithubCombusbudTidalwaveParser2(in *jlexer.Lexer, out *ArrayResults) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -291,7 +291,7 @@ func easyjsonF59a38b1DecodeGithubComDustinblackmanTidalwaveParser2(in *jlexer.Le
 		in.Consumed()
 	}
 }
-func easyjsonF59a38b1EncodeGithubComDustinblackmanTidalwaveParser2(out *jwriter.Writer, in ArrayResults) {
+func easyjsonF59a38b1EncodeGithubCombusbudTidalwaveParser2(out *jwriter.Writer, in ArrayResults) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -336,23 +336,23 @@ func easyjsonF59a38b1EncodeGithubComDustinblackmanTidalwaveParser2(out *jwriter.
 // MarshalJSON supports json.Marshaler interface
 func (v ArrayResults) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonF59a38b1EncodeGithubComDustinblackmanTidalwaveParser2(&w, v)
+	easyjsonF59a38b1EncodeGithubCombusbudTidalwaveParser2(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v ArrayResults) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonF59a38b1EncodeGithubComDustinblackmanTidalwaveParser2(w, v)
+	easyjsonF59a38b1EncodeGithubCombusbudTidalwaveParser2(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *ArrayResults) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonF59a38b1DecodeGithubComDustinblackmanTidalwaveParser2(&r, v)
+	easyjsonF59a38b1DecodeGithubCombusbudTidalwaveParser2(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *ArrayResults) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonF59a38b1DecodeGithubComDustinblackmanTidalwaveParser2(l, v)
+	easyjsonF59a38b1DecodeGithubCombusbudTidalwaveParser2(l, v)
 }
