@@ -2,7 +2,7 @@ VERSION := 1.2.0
 
 # Creates binary
 build:
-	go build -x -ldflags="-X github.com/dustinblackman/tidalwave/cmd.version=$(VERSION)" -o tidalwave tidalwave.go
+	go build -x -ldflags="-X github.com/busbud/tidalwave/cmd.version=$(VERSION)" -o tidalwave tidalwave.go
 
 cli-deps:
 	@which gobin &> /dev/null || GO111MODULE=off go get -u github.com/myitcv/gobin
@@ -18,7 +18,7 @@ easyjson: cli-deps
 
 # Builds and installs binary. Mainly used from people wanting to install from source.
 install:
-	go install -ldflags="-X github.com/dustinblackman/tidalwave/cmd.version $(VERSION)" *.go
+	go install -ldflags="-X github.com/busbud/tidalwave/cmd.version $(VERSION)" *.go
 
 # Runs tests
 lint: cli-deps
