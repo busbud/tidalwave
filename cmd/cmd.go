@@ -105,7 +105,7 @@ Home: https://github.com/busbud/tidalwave`,
 	// Shared Flags
 	flags.Int("max-parallelism", maxParallelism(),
 		"Set the maximum amount of threads to run when processing log files during queries. Default is the number of cores on system.")
-	flags.String("logroot", "./logs", "Log root directory where log files are stored")
+	flags.StringP("logroot", "r", "./logs", "Log root directory where log files are stored")
 	flags.Bool("debug", false, "Enable debug logging")
 
 	// Cli Flags
