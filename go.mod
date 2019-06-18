@@ -28,7 +28,7 @@ require (
 	github.com/valyala/fasttemplate v1.0.1 // indirect
 	go.uber.org/atomic v1.2.0 // indirect
 	go.uber.org/multierr v1.1.0 // indirect
-	go.uber.org/zap v1.9.1
+	go.uber.org/zap v1.10.0
 	golang.org/x/crypto v0.0.0-20190411191339-88737f569e3a // indirect
 	golang.org/x/sys v0.0.0-20190411185658-b44545bcd369 // indirect
 )
