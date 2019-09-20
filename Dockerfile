@@ -1,19 +1,19 @@
-FROM alpine:3.8
+# Builder
+FROM golang:1.12-alpine3.9 as builder
 
-ENV GOPATH /go
-ENV PATH "${GOPATH}/bin:${PATH}"
-WORKDIR /go/src/github.com/dustinblackman/tidalwave
-COPY ./ ./
+RUN apk add --no-cache git build-base bash
 
-RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" | tee -a /etc/apk/repositories && \
-    apk add -U git build-base go=1.11.1-r0 && \
-    make deps && \
-    make build && \
-    mkdir -p /app && \
-    mv ./tidalwave /app/ && \
-    cd /app && \
-    apk del git build-base go && \
-    rm -rf /usr/share/man /tmp/* /var/tmp/* /var/cache/apk/* "$GOPATH"
+WORKDIR /build
+COPY ./go.mod ./go.sum ./
+RUN go mod download
 
-WORKDIR /app
-ENTRYPOINT ["/app/tidalwave"]
+COPY . .
+RUN make
+
+# App
+FROM alpine:3.9
+
+RUN apk add --no-cache bash ca-certificates && rm -rf /usr/share/man /tmp/* /var/tmp/*
+COPY --from=builder /build/tidalwave /usr/bin/tidalwave
+
+CMD ["/usr/bin/tidalwave"]
