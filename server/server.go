@@ -34,6 +34,10 @@ func New(version string) {
 	app.Use(middleware.Logger())
 	app.Use(middleware.Recover())
 
+	app.GET("/", func(ctx echo.Context) error {
+		return ctx.JSON(200, map[string]string{"status": "up"})
+	})
+
 	app.GET("/query", func(ctx echo.Context) error {
 		queryString := ctx.QueryParam("q")
 		if len(queryString) < 6 {
