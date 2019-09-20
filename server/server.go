@@ -9,8 +9,8 @@ import (
 
 	"github.com/busbud/tidalwave/logger"
 	"github.com/busbud/tidalwave/parser"
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/spf13/viper"
 )
 
@@ -40,6 +40,7 @@ func New(version string) {
 
 	app.GET("/query", func(ctx echo.Context) error {
 		queryString := ctx.QueryParam("q")
+		logger.Log.Debug(map[string]string{"query": queryString})
 		if len(queryString) < 6 {
 			// TODO Silly error.
 			ctx.JSON(400, map[string]string{"error": "Query length needs to be greater then 6"})
