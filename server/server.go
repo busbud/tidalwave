@@ -95,6 +95,42 @@ func New(version string) {
 		return nil
 	})
 
+	app.GET("/query-for-lines", func(ctx echo.Context) error {
+		queryString := ctx.QueryParam("q")
+		logger.Log.Debug(map[string]string{"query": queryString})
+		if len(queryString) < 6 {
+			// TODO Silly error.
+			ctx.JSON(400, map[string]string{"error": "Query length needs to be greater then 6"})
+			return nil
+		}
+
+		start := time.Now()
+		queryResults := parser.Query(queryString)
+
+		switch results := queryResults.(type) {
+		case parser.ChannelResults:
+			r, w := io.Pipe()
+			go ctx.Stream(200, "application/json-seq", r)
+			for line := range results.Channel {
+				w.Write([]byte("\n"))
+				w.Write(line)
+			}
+			w.Close()
+		case parser.ArrayResults:
+			ctx.JSON(400, map[string]string{"error": "Array results not supportred on /query-by-line. Use /query instead."})
+		case parser.ObjectResults:
+			ctx.JSON(400, map[string]string{"error": "Object results not supportred on /query-by-line. Use /query instead."})
+		case parser.IntResults:
+			ctx.JSON(400, map[string]string{"error": "Integer results not supportred on /query-by-line. Use /query instead."})
+		default:
+			ctx.JSON(400, map[string]string{"error": "Query type not supported"})
+		}
+
+		elapsed := time.Since(start)
+		logger.Log.Debug("Execution time: %s\n", elapsed)
+		return nil
+	})
+
 	go app.Start(":" + viper.GetString("port"))
 
 	c := make(chan os.Signal, 1)
