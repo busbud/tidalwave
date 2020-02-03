@@ -24,7 +24,7 @@ func formatLine(query *sqlquery.QueryParams, line []byte) []byte {
 	if len(query.Selects) > 0 {
 		selectedEntries := []string{}
 		for idx, res := range gjson.GetManyBytes(line, query.Selects...) {
-			keyName := queryParam.KeyPath
+			keyName := ""
 			for _, queryParam := range query.Queries {
 				if queryParam.KeyPath == query.Selects[idx] && queryParam.KeyName != "" {
 					keyName = queryParam.KeyName
