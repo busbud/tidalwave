@@ -17,10 +17,10 @@ install:
 	go install -ldflags="-X github.com/busbud/tidalwave/cmd.version $(VERSION)"
 
 # Runs tests
-lint: cli-deps
+lint:
 	gomodrun golangci-lint run ./...
 
-lint-fix: cli-deps
+lint-fix:
 	gomodrun golangci-lint run --fix ./...
 
 test:
