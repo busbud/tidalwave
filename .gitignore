@@ -2,6 +2,7 @@ dist/
 tmp/
 logs/
 .gobincache/
+.gomodrun/
 vendor/*/
 !vendor/vendor.json
 
