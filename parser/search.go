@@ -41,7 +41,7 @@ func formatLine(query *sqlquery.QueryParams, line []byte) []byte {
 			} else if res.Type == gjson.Null {
 				selectedEntries = append(selectedEntries, `"`+keyName+`":null`)
 			} else {
-				selectedEntries = append(selectedEntries, `"`+keyName+`":"`+res.String()+`"`)
+				selectedEntries = append(selectedEntries, `"`+keyName+`":"`+strings.Replace(res.String(), `"`, `\"`, -1)+`"`)
 			}
 		}
 
