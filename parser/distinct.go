@@ -1,3 +1,4 @@
+// Package parser handles parsing log files based on the SQL execution type.
 package parser
 
 import "sort"

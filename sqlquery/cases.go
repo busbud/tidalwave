@@ -1,3 +1,4 @@
+// Package sqlquery handles parsing SQL and converting to a dialect for Tidalwave.
 package sqlquery
 
 import (
@@ -90,7 +91,7 @@ func withinDay(logDate, dayStart, dayEnd moment.Moment) bool {
 
 // ProcessDate handles processing a date in a query
 func ProcessDate(d *DateParam, logDate moment.Moment, dateOnly bool) bool {
-	if len(d.Date) == 0 {
+	if d.Date == "" {
 		return true
 	}
 

@@ -1,3 +1,4 @@
+// Package main is the entry point for Tidalwave.
 package main
 
 import (

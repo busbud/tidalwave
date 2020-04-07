@@ -1,0 +1,22 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.14
+
+    working_directory: ~/tidalwave
+
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - gosum-{{ checksum "go.sum" }}
+      - run: curl -L "https://github.com/dustinblackman/gomodrun/releases/download/v0.2.2/gomodrun_0.2.2_linux_amd64.tar.gz" | tar -zxvf - -C /go/bin/ gomodrun
+      - run: go mod download
+      - run: make lint
+      - save_cache:
+          key: gosum
+          paths:
+            - .gomodrun
+            - /go/pkg/mod
+

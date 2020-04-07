@@ -1,36 +1,89 @@
 linters-settings:
-  govet:
-    check-shadowing: true
-  golint:
-    min-confidence: 0
-  gocyclo:
-    min-complexity: 11
-  maligned:
-    suggest-new: true
+  depguard:
+    list-type: blacklist
   dupl:
     threshold: 100
+  funlen:
+    lines: 300
+    statements: 50
   goconst:
-    min-len: 2
-    min-occurrences: 2
-  misspell:
-    locale: US
-  lll:
-    line-length: 140
-  goimports:
-    local-prefixes: github.com/busbud/terraform-modules
+    min-len: 4
+    min-occurrences: 5
   gocritic:
     enabled-tags:
+      - diagnostic
+      - experimental
+      - opinionated
       - performance
       - style
-      - experimental
     disabled-checks:
-      - wrapperFunc
-      - commentFormatting # https://github.com/go-critic/go-critic/issues/755
+      - dupImport # https://github.com/go-critic/go-critic/issues/845
+      - ifElseChain
+    settings: # settings passed to gocritic
+      rangeValCopy:
+        sizeThreshold: 1024
+      hugeParam:
+        sizeThreshold: 1024
+  gocyclo:
+    min-complexity: 40
+  goimports:
+    local-prefixes: github.com/dustinblackman/gomodrun
+  golint:
+    min-confidence: 0
+  govet:
+    check-shadowing: true
+  lll:
+    line-length: 300
+  maligned:
+    suggest-new: true
+  misspell:
+    locale: US
+
+issues:
+  exclude-use-default: false
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - dupl
+    - text: "(G204|G304|G302):"
+      linters:
+      - gosec
 
 linters:
-  enable-all: true
-  disable:
-    - maligned
-    - prealloc
+  disable-all: true
+  enable:
+    - bodyclose
+    - deadcode
+    - depguard
+    - dogsled
+    - dupl
+    - errcheck
+    - funlen
+    - gochecknoinits
+    - goconst
+    - gocritic
+    - gocyclo
+    - gofmt
+    - goimports
+    - golint
+    - goprintffuncname
     - gosec
-    - gochecknoglobals
+    - gosimple
+    - govet
+    - ineffassign
+    - interfacer
+    - lll
+    - maligned
+    - misspell
+    - nakedret
+    - rowserrcheck
+    - scopelint
+    - staticcheck
+    - structcheck
+    - stylecheck
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - varcheck
+    - whitespace

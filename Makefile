@@ -3,10 +3,6 @@ VERSION := 1.3.1
 # Creates binary
 build:
 	go build -x -ldflags="-X github.com/busbud/tidalwave/cmd.version=$(VERSION)" -o tidalwave tidalwave.go
-# Creates bash autocomplete file
-bashautocomplete:
-	go run ./tools/bash-autocomplete/bash.go
-	gofmt -s -w ./cmd/autocomplete.go
 
 # Creates easyjson file for parser/parser.go
 easyjson:
@@ -18,10 +14,10 @@ install:
 
 # Runs tests
 lint:
-	gomodrun golangci-lint run ./...
+	gomodrun golangci-lint run
 
 lint-fix:
-	gomodrun golangci-lint run --fix ./...
+	gomodrun golangci-lint run --fix
 
 test:
 	make lint

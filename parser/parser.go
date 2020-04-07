@@ -1,3 +1,4 @@
+// Package parser handles parsing log files based on the SQL execution type.
 package parser
 
 import (
@@ -5,9 +6,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dustinblackman/moment"
 	"github.com/busbud/tidalwave/logger"
 	"github.com/busbud/tidalwave/sqlquery"
+	"github.com/dustinblackman/moment"
 	"github.com/spf13/viper"
 )
 
@@ -51,8 +52,8 @@ type ObjectResults struct {
 }
 
 func dateMatch(date *moment.Moment, dates []sqlquery.DateParam, dateOnly bool) bool {
-	for _, dateParam := range dates {
-		if !sqlquery.ProcessDate(&dateParam, *date, dateOnly) {
+	for idx := range dates {
+		if !sqlquery.ProcessDate(&dates[idx], *date, dateOnly) {
 			return false
 		}
 	}
@@ -95,8 +96,6 @@ func GetLogPaths(query *sqlquery.QueryParams, logRoot string) []string {
 
 // Query executes a given query string.
 func Query(queryString string) interface{} {
-	viper := viper.GetViper()
-
 	query := sqlquery.New(queryString)
 	logPaths := GetLogPaths(query, viper.GetString("logroot"))
 	parser := TidalwaveParser{
