@@ -55,16 +55,16 @@ type ObjectResults struct {
 	Results *map[string]int `json:"results"`
 }
 
-func readLine(path string, callback func(*[]byte)) error {
+func readLine(logPath string, callback func(*[]byte)) error {
 	var err error
 
 	retry := 0
 	for retry < 3 {
 		var file *os.File
-		file, err = os.Open(path)
+		file, err = os.Open(logPath)
 		if err != nil {
 			retry++
-			logger.Log.Debugf("Failed to open %s after %v attempts, retrying in 30 seconds. %s", path, retry, err.Error())
+			logger.Log.Debugf("Failed to open %s after %v attempts, retrying in 30 seconds. %s", logPath, retry, err.Error())
 			time.Sleep(30 * time.Second)
 			continue
 		}
@@ -75,7 +75,8 @@ func readLine(path string, callback func(*[]byte)) error {
 		delim := byte('\n')
 
 		for {
-			line, err := reader.ReadBytes(delim)
+			var line []byte
+			line, err = reader.ReadBytes(delim)
 
 			if err == io.EOF {
 				retry = 100
@@ -85,7 +86,7 @@ func readLine(path string, callback func(*[]byte)) error {
 			if err != nil {
 				if strings.Contains(err.Error(), "input/output error") {
 					retry++
-					logger.Log.Debugf("Input/output error for %s after %v attempts, retrying in 30 seconds. %s", path, retry, err.Error())
+					logger.Log.Debugf("Input/output error for %s after %v attempts, retrying in 30 seconds. %s", logPath, retry, err.Error())
 					time.Sleep(30 * time.Second)
 					break
 				} else {
