@@ -2,9 +2,6 @@
 package parser
 
 import (
-	"bufio"
-	"io"
-	"os"
 	"strings"
 	"sync"
 
@@ -56,31 +53,16 @@ func searchParse(query *sqlquery.QueryParams, logStruct *LogQueryStruct, coreLim
 	defer wg.Done()
 
 	logger.Log.Debugf("Processing: %s", logStruct.LogPath)
-	file, err := os.Open(logStruct.LogPath)
-	if err != nil {
-		logger.Log.Fatal(err)
-	}
-	defer file.Close() //nolint:errcheck // Don't care if there's errors.
-
 	lineNumber := -1
 	lastLineNumber := -1
-	reader := bufio.NewReader(file)
-	delim := byte('\n')
 
-	for {
-		line, err := reader.ReadBytes(delim)
+	err := readLine(logStruct.LogPath, func(line *[]byte) {
 		lineNumber++
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			logger.Log.Fatal(err)
-		}
 
-		if query.ProcessLine(&line) {
+		if query.ProcessLine(line) {
 			if viper.GetBool("skip-sort") {
-				submitChannel <- formatLine(query, line)
-				continue
+				submitChannel <- formatLine(query, *line)
+				return
 			}
 
 			if lineNumber == (lastLineNumber+1) && lineNumber != 0 {
@@ -90,32 +72,19 @@ func searchParse(query *sqlquery.QueryParams, logStruct *LogQueryStruct, coreLim
 			}
 			lastLineNumber = lineNumber
 		}
+	})
+
+	if err != nil {
+		logger.Log.Fatal(err)
 	}
 
 	<-coreLimit
 }
 
 func searchSubmit(query *sqlquery.QueryParams, logStruct *LogQueryStruct, submitChannel chan<- []byte) {
-	file, err := os.Open(logStruct.LogPath)
-	if err != nil {
-		logger.Log.Fatal(err)
-	}
-	defer file.Close() //nolint:errcheck // Don't care if there's errors.
-
-	reader := bufio.NewReader(file)
-	delim := byte('\n')
 	lineNumber := -1
-	// TODO: Handle scanner errors
-	for {
-		line, err := reader.ReadBytes(delim)
+	err := readLine(logStruct.LogPath, func(line *[]byte) {
 		lineNumber++
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			logger.Log.Fatal(err)
-		}
-
 		acceptLine := false
 		// TODO: Can this be better? Faster?
 		for _, lineRange := range logStruct.LineNumbers {
@@ -124,11 +93,14 @@ func searchSubmit(query *sqlquery.QueryParams, logStruct *LogQueryStruct, submit
 				break
 			}
 		}
-		if !acceptLine {
-			continue
-		}
 
-		submitChannel <- formatLine(query, line)
+		if acceptLine {
+			submitChannel <- formatLine(query, *line)
+		}
+	})
+
+	if err != nil {
+		logger.Log.Fatal(err)
 	}
 }
 

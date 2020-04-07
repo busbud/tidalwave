@@ -2,9 +2,13 @@
 package parser
 
 import (
+	"bufio"
+	"io"
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/busbud/tidalwave/logger"
 	"github.com/busbud/tidalwave/sqlquery"
@@ -49,6 +53,51 @@ type IntResults struct {
 type ObjectResults struct {
 	Type    string          `json:"type"`
 	Results *map[string]int `json:"results"`
+}
+
+func readLine(path string, callback func(*[]byte)) error {
+	var err error
+
+	retry := 0
+	for retry < 3 {
+		var file *os.File
+		file, err = os.Open(path)
+		if err != nil {
+			retry++
+			logger.Log.Debugf("Failed to open %s after %v attempts, retrying in 30 seconds. %s", path, retry, err.Error())
+			time.Sleep(30 * time.Second)
+			continue
+		}
+
+		defer file.Close() //nolint:errcheck // Don't care if there's errors.
+
+		reader := bufio.NewReader(file)
+		delim := byte('\n')
+
+		for {
+			line, err := reader.ReadBytes(delim)
+
+			if err == io.EOF {
+				retry = 100
+				break
+			}
+
+			if err != nil {
+				if strings.Contains(err.Error(), "input/output error") {
+					retry++
+					logger.Log.Debugf("Input/output error for %s after %v attempts, retrying in 30 seconds. %s", path, retry, err.Error())
+					time.Sleep(30 * time.Second)
+					break
+				} else {
+					return err
+				}
+			}
+
+			callback(&line)
+		}
+	}
+
+	return err
 }
 
 func dateMatch(date *moment.Moment, dates []sqlquery.DateParam, dateOnly bool) bool {
