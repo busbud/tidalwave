@@ -13,7 +13,7 @@ func distinctCountParse(query *sqlquery.QueryParams, resultsChan chan<- map[stri
 	defer wg.Done()
 
 	results := map[string]int{}
-	err := readLine(logPath, func(line *[]byte) {
+	err := readLines(logPath, func(line *[]byte) {
 		if query.ProcessLine(line) {
 			res := gjson.GetBytes(*line, query.AggrPath)
 			if res.Type != 0 {

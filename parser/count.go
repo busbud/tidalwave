@@ -12,7 +12,7 @@ func countParse(query *sqlquery.QueryParams, resultsChan chan<- int, logPath str
 	defer wg.Done()
 
 	count := 0
-	err := readLine(logPath, func(line *[]byte) {
+	err := readLines(logPath, func(line *[]byte) {
 		if query.ProcessLine(line) {
 			count++
 		}

@@ -56,7 +56,7 @@ func searchParse(query *sqlquery.QueryParams, logStruct *LogQueryStruct, coreLim
 	lineNumber := -1
 	lastLineNumber := -1
 
-	err := readLine(logStruct.LogPath, func(line *[]byte) {
+	err := readLines(logStruct.LogPath, func(line *[]byte) {
 		lineNumber++
 
 		if query.ProcessLine(line) {
@@ -83,7 +83,7 @@ func searchParse(query *sqlquery.QueryParams, logStruct *LogQueryStruct, coreLim
 
 func searchSubmit(query *sqlquery.QueryParams, logStruct *LogQueryStruct, submitChannel chan<- []byte) {
 	lineNumber := -1
-	err := readLine(logStruct.LogPath, func(line *[]byte) {
+	err := readLines(logStruct.LogPath, func(line *[]byte) {
 		lineNumber++
 		acceptLine := false
 		// TODO: Can this be better? Faster?

@@ -55,7 +55,7 @@ type ObjectResults struct {
 	Results *map[string]int `json:"results"`
 }
 
-func readLine(logPath string, callback func(*[]byte)) error {
+func readLines(logPath string, callback func(*[]byte)) error {
 	var err error
 
 	retry := 0
