@@ -1,11 +1,11 @@
 module github.com/busbud/tidalwave
 
-go 1.12
+go 1.14
 
 require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dustinblackman/moment v0.0.0-20170412202417-fd1acf26c3c0
-	github.com/golangci/golangci-lint v1.23.6
+	github.com/golangci/golangci-lint v1.24.0
 	github.com/jinzhu/copier v0.0.0-20180308034124-7e38e58719c3
 	github.com/labstack/echo/v4 v4.1.10
 	github.com/lfittl/pg_query_go v1.0.0
@@ -14,6 +14,7 @@ require (
 	github.com/spf13/afero v1.2.2 // indirect
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
+	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.6.1
 	github.com/tidwall/gjson v1.2.1
 	github.com/tidwall/match v1.0.1 // indirect

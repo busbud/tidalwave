@@ -1,3 +1,4 @@
+// Package parser handles parsing log files based on the SQL execution type.
 package parser
 
 import (
@@ -18,7 +19,7 @@ func countParse(query *sqlquery.QueryParams, resultsChan chan<- int, logPath str
 	if err != nil {
 		logger.Log.Fatal(err)
 	}
-	defer file.Close()
+	defer file.Close() //nolint:errcheck // Don't care if there's errors.
 
 	reader := bufio.NewReader(file)
 	delim := byte('\n')

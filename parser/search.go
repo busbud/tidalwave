@@ -1,3 +1,4 @@
+// Package parser handles parsing log files based on the SQL execution type.
 package parser
 
 import (
@@ -41,7 +42,7 @@ func formatLine(query *sqlquery.QueryParams, line []byte) []byte {
 			} else if res.Type == gjson.Null {
 				selectedEntries = append(selectedEntries, `"`+keyName+`":null`)
 			} else {
-				selectedEntries = append(selectedEntries, `"`+keyName+`":"`+strings.Replace(res.String(), `"`, `\"`, -1)+`"`)
+				selectedEntries = append(selectedEntries, `"`+keyName+`":"`+strings.ReplaceAll(res.String(), `"`, `\"`)+`"`)
 			}
 		}
 
@@ -59,7 +60,7 @@ func searchParse(query *sqlquery.QueryParams, logStruct *LogQueryStruct, coreLim
 	if err != nil {
 		logger.Log.Fatal(err)
 	}
-	defer file.Close()
+	defer file.Close() //nolint:errcheck // Don't care if there's errors.
 
 	lineNumber := -1
 	lastLineNumber := -1
@@ -99,7 +100,7 @@ func searchSubmit(query *sqlquery.QueryParams, logStruct *LogQueryStruct, submit
 	if err != nil {
 		logger.Log.Fatal(err)
 	}
-	defer file.Close()
+	defer file.Close() //nolint:errcheck // Don't care if there's errors.
 
 	reader := bufio.NewReader(file)
 	delim := byte('\n')

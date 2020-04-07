@@ -1,3 +1,4 @@
+// Package parser handles parsing log files based on the SQL execution type.
 package parser
 
 import (
@@ -19,7 +20,7 @@ func distinctCountParse(query *sqlquery.QueryParams, resultsChan chan<- map[stri
 	if err != nil {
 		logger.Log.Fatal(err)
 	}
-	defer file.Close()
+	defer file.Close() //nolint:errcheck // Don't care if there's errors.
 
 	reader := bufio.NewReader(file)
 	delim := byte('\n')
@@ -35,11 +36,7 @@ func distinctCountParse(query *sqlquery.QueryParams, resultsChan chan<- map[stri
 			res := gjson.GetBytes(line, query.AggrPath)
 			if res.Type != 0 {
 				value := res.String()
-				if _, ok := results[value]; ok {
-					results[value]++
-				} else {
-					results[value] = 1
-				}
+				results[value]++
 			}
 		}
 	}
@@ -49,7 +46,7 @@ func distinctCountParse(query *sqlquery.QueryParams, resultsChan chan<- map[stri
 
 // CountDistinct executes a COUNT(DISTINCT()) query over log results.
 // SELECT COUNT(DISTINCT(line.cmd)) FROM testapp WHERE date > '2016-10-05'
-func (tp *TidalwaveParser) CountDistinct() *map[string]int {
+func (tp *TidalwaveParser) CountDistinct() *map[string]int { //nolint:gocritic // Leave it alone.
 	logsLen := len(tp.LogPaths)
 	resultsChan := make(chan map[string]int, logsLen)
 
@@ -78,11 +75,7 @@ func (tp *TidalwaveParser) CountDistinct() *map[string]int {
 	mergedResults := map[string]int{}
 	for idx := range results {
 		for key, val := range results[idx] {
-			if _, ok := mergedResults[key]; ok {
-				mergedResults[key] += val
-			} else {
-				mergedResults[key] = val
-			}
+			mergedResults[key] += val
 		}
 	}
 

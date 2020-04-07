@@ -1,3 +1,4 @@
+// Package sqlquery handles parsing SQL and converting to a dialect for Tidalwave.
 package sqlquery
 
 import (
@@ -5,8 +6,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/busbud/tidalwave/logger"
+	"github.com/davecgh/go-spew/spew"
 	pgQuery "github.com/lfittl/pg_query_go"
 	pgNodes "github.com/lfittl/pg_query_go/nodes"
 	"github.com/tidwall/gjson"
@@ -85,18 +86,18 @@ func convertAConst(expr pgNodes.A_Const) string {
 // We replace them in New, and them restore them here after parsing the sql parsers response.
 func (qp *QueryParams) repairString(key string) string {
 	for _, entry := range stringReplacements {
-		key = strings.Replace(key, entry[1], entry[0], -1)
+		key = strings.ReplaceAll(key, entry[1], entry[0])
 	}
 
 	// Postgres' parser makes the entire string lower case before parsing it. This restores the casing.
 	idx := strings.Index(qp.SQLStringLower, strings.ToLower(key))
-	return strings.Replace(qp.SQLString[idx:idx+len(key)], "''", "'", -1)
+	return strings.ReplaceAll(qp.SQLString[idx:idx+len(key)], "''", "'")
 }
 
 func (qp *QueryParams) getSelectNodeString(selectNodeVal pgNodes.ColumnRef) string {
 	selectStrings := []string{}
 	for _, item := range selectNodeVal.Fields.Items {
-		switch item := item.(type) {
+		switch item := item.(type) { //nolint:gocritic // You have to use switch statements for types.
 		case pgNodes.String:
 			selectStrings = append(selectStrings, item.Str)
 		}
@@ -110,26 +111,25 @@ func (qp *QueryParams) assignTypeFieldsToParam(param QueryParam, value string) Q
 	if i, err := strconv.Atoi(value); err == nil {
 		param.IsInt = true
 		param.ValInt = i
-	} else {
+	} else if dry.StringListContains(regexOperators, param.Operator) {
 		// Handles building the Regex field on param when a string is selected
-		if dry.StringListContains(regexOperators, param.Operator) {
-			regexString := ""
-			if param.ValString[:1] == "%" && param.ValString[len(param.ValString)-1:] != "%" {
-				regexString = "^" + param.ValString[1:]
-			} else if param.ValString[:1] != "%" && param.ValString[len(param.ValString)-1:] == "%" {
-				regexString = param.ValString[:len(param.ValString)-1] + "$"
-			} else if param.ValString[:1] == "%" && param.ValString[len(param.ValString)-1:] == "%" {
-				regexString = param.ValString[1 : len(param.ValString)-1]
-			} else {
-				regexString = param.ValString
-			}
-
-			if param.Operator == "~~*" {
-				regexString = "(?i)" + regexString
-			}
-			param.Regex = regexp.MustCompile(regexString)
+		regexString := ""
+		if param.ValString[:1] == "%" && param.ValString[len(param.ValString)-1:] != "%" {
+			regexString = "^" + param.ValString[1:]
+		} else if param.ValString[:1] != "%" && param.ValString[len(param.ValString)-1:] == "%" {
+			regexString = param.ValString[:len(param.ValString)-1] + "$"
+		} else if param.ValString[:1] == "%" && param.ValString[len(param.ValString)-1:] == "%" {
+			regexString = param.ValString[1 : len(param.ValString)-1]
+		} else {
+			regexString = param.ValString
 		}
+
+		if param.Operator == "~~*" {
+			regexString = "(?i)" + regexString
+		}
+		param.Regex = regexp.MustCompile(regexString)
 	}
+
 	return param
 }
 
@@ -240,7 +240,7 @@ func New(queryString string) *QueryParams {
 
 	// Replace characters that the SQL parser won't accept that will be reverted back after parsing
 	for _, entry := range stringReplacements {
-		queryString = strings.Replace(queryString, entry[0], entry[1], -1)
+		queryString = strings.ReplaceAll(queryString, entry[0], entry[1])
 	}
 
 	tree, err := pgQuery.Parse(queryString)

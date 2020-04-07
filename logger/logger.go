@@ -1,3 +1,4 @@
+// Package logger initializes and stores a Zap logger instance in global.
 package logger
 
 import "go.uber.org/zap"

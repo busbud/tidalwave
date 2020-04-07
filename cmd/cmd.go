@@ -1,3 +1,4 @@
+// Package cmd handles initializing Tidalwave on the command line.
 package cmd
 
 import (
@@ -12,6 +13,7 @@ import (
 	"github.com/busbud/tidalwave/parser"
 	"github.com/busbud/tidalwave/server"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
@@ -29,8 +31,6 @@ func maxParallelism() int {
 }
 
 func cliQuery() {
-	viper := viper.GetViper()
-
 	query := viper.GetString("query")
 	if query == "-" {
 		queryBytes, err := ioutil.ReadAll(os.Stdin)
@@ -45,8 +45,14 @@ func cliQuery() {
 	switch res := results.(type) {
 	case parser.ChannelResults:
 		for line := range res.Channel {
-			os.Stdout.Write(line)
-			os.Stdout.Write([]byte("\n"))
+			_, err := os.Stdout.Write(line)
+			if err != nil {
+				logger.Log.Debug(err)
+			}
+			_, err = os.Stdout.Write([]byte("\n"))
+			if err != nil {
+				logger.Log.Debug(err)
+			}
 		}
 	case parser.ArrayResults:
 		for _, line := range *res.Results {
@@ -66,10 +72,14 @@ func cliQuery() {
 
 func run(rootCmd *cobra.Command, args []string) {
 	viper.AutomaticEnv()
-	viper.ReadInConfig()
+	err := viper.ReadInConfig()
 
 	// Init's global logger
 	logger.Init(viper.GetBool("debug"))
+
+	if err != nil {
+		logger.Log.Debug(err)
+	}
 
 	// Server and Client
 	if viper.GetBool("server") {
@@ -83,7 +93,10 @@ func run(rootCmd *cobra.Command, args []string) {
 
 	// If here and no query is set, then no proper flags were passed.
 	if viper.GetString("query") == "" {
-		rootCmd.Help()
+		err = rootCmd.Help()
+		if err != nil {
+			logger.Log.Fatal(err)
+		}
 	}
 }
 
@@ -126,18 +139,12 @@ Home: https://github.com/busbud/tidalwave`,
 	viper.AddConfigPath("/etc")
 	viper.AddConfigPath("$HOME/.tidalwave")
 
-	// TODO: There must be a better way to load flags in to viper without rewritting them.
-	for _, param := range []string{
-		"max-parallelism",
-		"logroot",
-		"debug",
-		"query",
-		"skip-sort",
-		"server",
-		"host",
-		"port"} {
-		viper.BindPFlag(param, flags.Lookup(param))
-	}
+	flags.VisitAll(func(f *pflag.Flag) {
+		err := viper.BindPFlag(f.Name, flags.Lookup(f.Name))
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+	})
 
 	return rootCmd
 }

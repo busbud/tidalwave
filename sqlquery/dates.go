@@ -1,8 +1,10 @@
+// Package sqlquery handles parsing SQL and converting to a dialect for Tidalwave.
 package sqlquery
 
 import (
 	"strings"
 
+	"github.com/busbud/tidalwave/logger"
 	"github.com/dustinblackman/moment"
 	"github.com/jinzhu/copier"
 )
@@ -24,9 +26,9 @@ func createDateParam(date, operator string) []DateParam {
 	if len(date) > 0 && len(date) <= 10 {
 		dateParam.TimeUsed = false
 		if operator == "<=" {
-			date = date + "T23:59:59"
+			date += "T23:59:59"
 		} else {
-			date = date + "T00:00:00"
+			date += "T00:00:00"
 		}
 	}
 	dateParam.Date = date
@@ -37,9 +39,12 @@ func createDateParam(date, operator string) []DateParam {
 
 	dateParam.DateTime = moment.New().Moment(queryDateFormat, date)
 
-	if operator == "=" && dateParam.TimeUsed == false {
+	if operator == "=" && !dateParam.TimeUsed {
 		returnDateParam := DateParam{}
-		copier.Copy(&returnDateParam, &dateParam)
+		err := copier.Copy(&returnDateParam, &dateParam)
+		if err != nil {
+			logger.Log.Fatal(err)
+		}
 
 		dateParam.Operator = ">="
 		returnDateParam.Operator = "<="
