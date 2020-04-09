@@ -80,6 +80,7 @@ func readLines(logPath string, callback func(*[]byte)) error {
 
 			if err == io.EOF {
 				retry = 100
+				err = nil
 				break
 			}
 
