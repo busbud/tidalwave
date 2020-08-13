@@ -58,13 +58,14 @@ type ObjectResults struct {
 func readLines(logPath string, callback func(*[]byte)) error {
 	var err error
 
+	maxAttemptes := 5
 	retry := 0
-	for retry < 3 {
+	for retry < maxAttemptes {
 		var file *os.File
 		file, err = os.Open(logPath)
 		if err != nil {
 			retry++
-			logger.Log.Debugf("Failed to open %s after %v attempts, retrying in 30 seconds. %s", logPath, retry, err.Error())
+			logger.Log.Debugf("Failed to open %s after %v/%v attempts, retrying in 30 seconds. %s", logPath, retry, maxAttemptes, err.Error())
 			time.Sleep(30 * time.Second)
 			continue
 		}
@@ -87,7 +88,7 @@ func readLines(logPath string, callback func(*[]byte)) error {
 			if err != nil {
 				if strings.Contains(err.Error(), "input/output error") {
 					retry++
-					logger.Log.Debugf("Input/output error for %s after %v attempts, retrying in 30 seconds. %s", logPath, retry, err.Error())
+					logger.Log.Debugf("Input/output error for %s after %v/%v attempts, retrying in 30 seconds. %s", logPath, retry, maxAttemptes, err.Error())
 					time.Sleep(30 * time.Second)
 					break
 				} else {
