@@ -87,10 +87,10 @@ func readLines(logPath string, callback func(*[]byte)) error {
 			}
 
 			if err != nil {
-				if strings.Contains(err.Error(), "input/output error") {
+				if strings.Contains(err.Error(), "input/output error") || strings.Contains(err.Error(), "interrupted system call") {
 					retry++
 					waitTime := 30 * retry
-					logger.Log.Debugf("Input/output error for %s after %v/%v attempts, retrying in %v seconds. %s", logPath, retry, maxAttemptes, waitTime, err.Error())
+					logger.Log.Debugf("error for %s after %v/%v attempts, retrying in %v seconds. %s", logPath, retry, maxAttemptes, waitTime, err.Error())
 					time.Sleep(time.Duration(waitTime) * time.Second)
 					break
 				} else {

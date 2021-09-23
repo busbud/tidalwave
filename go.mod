@@ -21,4 +21,5 @@ require (
 	github.com/tidwall/pretty v0.0.0-20190325153808-1166b9ac2b65 // indirect
 	github.com/ungerik/go-dry v0.0.0-20180411133923-654ae31114c8
 	go.uber.org/zap v1.10.0
+	mvdan.cc/gofumpt v0.1.1 // indirect
 )
